@@ -2,8 +2,8 @@
 
 A clickable HTML prototype of every screen on the Figma page **Final UI** of the WalaPlus revamp file.
 
-- **Open it:** `site/index.html` is the built prototype. Serve the `site/` folder over HTTP, for example `cd site && python3 -m http.server 8765`, then open http://127.0.0.1:8765. On a phone-sized window it fills the screen, and a **Controls** pill opens the switches. Add `?frame` to the address to keep the framed view.
-- **Fonts:** the brand fonts (Expo Arabic, NaN SuperX Sans) are not in this repository, because their licences don't allow redistribution. Put them in `site/fonts/` as `expo-medium.ttf`, `expo-bold.otf`, `nan-regular.ttf`, `nan-medium.ttf`, `nan-semibold.ttf` and `nan-bold.ttf`, or run the build with your fonts folder. Without them the page falls back to system fonts.
+- **Open it:** https://aeltwaty-design.github.io/walaplus-revamp/ once GitHub Pages is on for this repository (Settings, Pages, deploy from the `main` branch, folder `/ (root)`). Locally, `site/index.html` is the built prototype. Serve the `site/` folder over HTTP, for example `cd site && python3 -m http.server 8765`, then open http://127.0.0.1:8765. On a phone-sized window it fills the screen, and a **Controls** pill opens the switches. Add `?frame` to the address to keep the framed view.
+- **Fonts:** the brand fonts (Expo Arabic and NaN SuperX Sans) are in `site/fonts/`, so the prototype looks the same wherever it is opened.
 
 ## What's here
 
