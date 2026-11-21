@@ -1,0 +1,5 @@
+# Brand fonts are trial/commercial licences: not redistributed here (see prototype/README.md)
+prototype/site/fonts/
+__pycache__/
+node_modules/
+.DS_Store

@@ -1,0 +1,174 @@
+/* ===== Stores tab, live HTML (Figma "Marketplace · Final UI") ===== */
+.st-layer{background:#f0f8f3;direction:rtl;font-family:"NaN SuperX","Expo Arabic",sans-serif;color:#111}
+:where(.st-layer) :where(button){font:inherit;color:inherit;border:0;background:none;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.st-layer .scroll{background:#f0f8f3}
+.st-head{position:relative;height:203px;background-repeat:no-repeat;background-size:390px auto}
+.st-fav{position:absolute;left:16px;top:46px;width:40px;height:40px;border-radius:50%}
+.st-title{position:absolute;right:16px;top:41px;text-align:right}
+.st-title h1{margin:0;font:700 24px/32px "Expo Arabic",sans-serif;color:#111}
+.st-loc{display:flex;align-items:center;gap:4px;height:18px;font:500 12px/16px "NaN SuperX",sans-serif;color:#62625c}
+.st-loc .ic{font-size:18px;color:#00cc88}
+.st-loc.off .ic{color:#62625c}
+.st-loc b{font-weight:500;color:#00cc88}
+.st-banners{position:absolute;left:0;top:107px;width:390px;height:80px;overflow-x:auto;overflow-y:hidden;display:flex;gap:8px;padding:0 16px;
+  scroll-snap-type:x mandatory;scroll-padding-inline:16px;scrollbar-width:none;overscroll-behavior-x:contain}
+.st-banners::-webkit-scrollbar{display:none}
+.st-banners>button{flex:none;width:300px;height:80px;border-radius:20px;background-size:100% 100%;scroll-snap-align:start}
+.st-banners::after{content:"";flex:none;width:8px}
+.st-dots{position:absolute;left:0;right:0;top:195px;height:8px;display:flex;justify-content:center;align-items:center;gap:6px;direction:ltr}
+.st-dots i{width:5px;height:5px;border-radius:50%;background:#c4c4c4;transition:.25s}
+.st-dots i.on{width:21.67px;height:8px;border-radius:0;background:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEEAAAAYCAYAAACldpB6AAAB9UlEQVR42uWYz1XCQBDGf8QChEcBggeugg0INCA24L8GxArECqQD8eIVuXhEPXpRtACDFSQlePCLb18kISFBA5n38rLAsjvz7cx8M1uo1WpEkD3giexLBRgCB8A06p+sCHN6wCNwsQIAjIG63vtpgdAxjO8BH9osqwBU9bkK3EU9uI1yuRy28C1QMr4rAV2NPwE3AwDUgXsDAFOa+v05TNcwTxgHLOx5xRg4+mcAusBriJ6eN4/DPDgIhP6chT2XGyhEjv44TJrAA3AVcX4VsIGzqCB0gybPAeMFuJaCyzb+YcF9+rOAK/gosiLEkootSh2JWdyEhjeBwwjeGUe/tkejJgiVOXkgiUy04UQJ1eNwk8uL0qEI7Cih7fgSc5piA+fAyARhqCSSJ5kCu5aR7fMGgAO0AMfyFUR5klMvHK0McP1/yIkqyh+KPAAucxQCJ6L0X3VCT/FhrzkAbT8A/mLpMWjSurCAKHpuxTiVuzTWyCv6smcat3eYANsCxF7h02+pIHKT3CcMVhAMR4m+oRBPfKmyamDcKPZ7cfoVK+YmHhgtjZ0MnXwJOCbG3WJQF7mIdPi+z9tfYrMzy/B3Jb2kXWoqIPjb3roASbsDnMjgkcZuWgunDYJfKnrqwJbRKheBTb1LOlnPqE89jox9k4u7y1LyC3EFc2ow35+fAAAAAElFTkSuQmCC") center/100% 100% no-repeat}
+.st-search{height:64px;background-size:100% 100%;cursor:pointer}
+/* lens */
+.st-lensrow{padding:16px 16px 0;height:64px;position:relative;z-index:2}
+.st-lens{display:flex;height:48px;padding:4px;border-radius:500px;background:#fff;box-shadow:0 10px 30px rgba(18,18,18,.08)}
+.st-lens button{flex:1;height:40px;border-radius:500px;display:flex;align-items:center;justify-content:center;gap:8px;font:500 14px/20px "NaN SuperX",sans-serif;color:#62625c;transition:background .2s,color .2s}
+.st-lens button i{width:8px;height:8px;border-radius:50%}
+.st-lens button.on{background:#111;color:#fff;font-weight:600}
+.st-sticky .st-lens{box-shadow:none}
+/* chips (offer types, sub-categories, filters) */
+.st-hrow{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:0 16px;overscroll-behavior-x:contain}
+.st-hrow::-webkit-scrollbar{display:none}
+.st-hrow::after{content:"";flex:none;width:8px}
+.st-types{padding-top:16px;height:56px}
+.st-subs{padding-top:8px;height:48px}
+.st-chip{flex:none;height:40px;padding:0 16px;border-radius:500px;background:#fff;box-shadow:0 1px 3px rgba(18,18,18,.06);display:flex;align-items:center;gap:8px;
+  font:500 14px/20px "NaN SuperX",sans-serif;color:#111;white-space:nowrap}
+.st-chip small{font:500 12px/16px "NaN SuperX",sans-serif;color:#62625c}
+.st-chip i.dot{width:8px;height:8px;border-radius:50%}
+.st-chip.on{background:#111;color:#fff;font-weight:600;box-shadow:none}
+.st-chip.on small{color:#c1c1bc}
+.st-chip.on.gold{background:#fcc128;color:#111}.st-chip.on.gold small{color:rgba(17,17,17,.6)}
+.st-chip.on.aqua{background:#00ffa8;color:#111}.st-chip.on.aqua small{color:rgba(17,17,17,.6)}
+.st-chip.zero{opacity:.45}
+.st-chip .x{font-size:16px;margin-inline-start:-2px}
+.st-chip .cic{width:24px;height:24px;background-size:100% 100%}
+.st-chip.tinted{box-shadow:none}
+.st-chip.grid{width:40px;padding:0;justify-content:center;background:#f0f8f3;box-shadow:none;font-size:22px}
+/* category tiles */
+.st-tiles{height:96px;padding-top:16px;gap:12px;align-items:flex-start}
+.st-tiles button{flex:none;height:80px;background-size:100% 100%}
+/* path */
+.st-path{height:36px;padding:16px 16px 0;display:flex;align-items:center;gap:4px;font:500 14px/20px "NaN SuperX",sans-serif;color:#62625c}
+.st-path button{color:#62625c;font-weight:500;white-space:nowrap}
+.st-path button.cur{color:#111;font-weight:600}
+.st-path .ic{font-size:18px;color:#62625c}
+.st-path .clr{margin-right:auto;display:flex;align-items:center;gap:4px;color:#00cc88;font-weight:500}
+.st-path .clr .ic{color:#00cc88;font-size:18px}
+/* strips */
+.st-strip{position:relative;background-size:100% 100%;cursor:pointer}
+.st-switch{position:absolute;left:32px;top:36px;width:56px;height:32px;border-radius:16px;background:#111;transition:background .2s}
+.st-switch::after{content:"";position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s}
+.st-switch.off{background:#d6dbd8}
+.st-switch.off::after{left:28px}
+/* toolbar */
+.st-tool{height:64px;padding:24px 16px 0;display:flex;align-items:center;gap:8px}
+.st-tool h2{margin:0;font:700 20px/28px "Expo Arabic",sans-serif;color:#111;white-space:nowrap}
+.st-count{height:24px;min-width:24px;padding:0 8px;border-radius:500px;background:#fff;font:600 12px/24px "NaN SuperX",sans-serif;text-align:center}
+.st-sort{margin-right:auto;height:40px;padding:0 8px;border-radius:500px;background:#fff;box-shadow:0 1px 3px rgba(18,18,18,.08);display:flex;align-items:center;gap:4px;font:500 14px/20px "NaN SuperX",sans-serif;white-space:nowrap}
+.st-sort .ic{font-size:24px}
+.st-sort .ic:first-child{font-size:20px;padding:2px}
+.st-filter{position:relative;width:40px;height:40px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(18,18,18,.08);display:flex;align-items:center;justify-content:center;font-size:24px}
+.st-filter b{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;border-radius:9px;background:#00ffa8;color:#111;font:700 11px/18px "NaN SuperX",sans-serif;padding:0 4px}
+.st-active{padding-top:12px;height:52px}
+.st-active .st-chip{height:36px;padding:0 12px;font-size:13px}
+/* rows */
+.st-list{padding:16px 16px 0}
+.st-row{position:relative;display:flex;gap:16px;padding:8px;height:128px;margin-bottom:8px;background:#fff;border-radius:20px;box-shadow:0 6px 20px rgba(18,18,18,.06);cursor:pointer}
+.st-ph{flex:none;width:133px;height:112px;border-radius:16px;background-size:100% 100%}
+.st-info{width:193px;min-width:0;display:flex;flex-direction:column}
+.st-name{display:flex;align-items:center;gap:8px;height:24px}
+.st-name b{font:700 16px/24px "NaN SuperX",sans-serif;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-ad{flex:none;height:24px;padding:0 8px;border-radius:500px;background:#eef6f1;color:#62625c;font:500 12px/24px "NaN SuperX",sans-serif}
+.st-heart{flex:none;margin-right:auto;width:28px;height:28px;margin-left:-6px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#111}
+.st-heart.on{color:#ff4d6d}
+.st-heart.on svg{fill:#ff4d6d}
+.st-heart.pop{animation:pop .3s ease}
+@keyframes pop{50%{transform:scale(1.35)}}
+.st-cat{margin-top:4px;font:400 12px/16px "NaN SuperX",sans-serif;color:#62625c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st-meta{margin-top:4px;display:flex;align-items:center;gap:4px;height:18px;font:400 12px/16px "NaN SuperX",sans-serif;color:#62625c;white-space:nowrap}
+.st-meta .ic{font-size:18px}
+.st-meta .star{color:#fcc128}.st-meta .star svg{fill:#fcc128}
+.st-meta b{font-weight:600;color:#111}
+.st-meta em{font-style:normal;font-weight:500}
+.st-tags{margin-top:auto;height:32px;display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain}
+.st-tags::-webkit-scrollbar{display:none}
+.st-tags.more{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 24px);mask-image:linear-gradient(to right,transparent 0,#000 24px)}
+.st-tag{flex:none;height:32px;padding:0 16px;border-radius:500px;display:flex;align-items:center;gap:4px;font:700 12px/16px "NaN SuperX",sans-serif;color:#111;white-space:nowrap}
+.st-tag.disc{background:#00ffa8}.st-tag.bogo{background:#fcc128}.st-tag.cb{background:#00def9}.st-tag.vou{background:#bb8fff}
+.st-tag:active{transform:scale(.96)}
+.riyal{width:9px;height:10px;fill:currentColor;flex:none}
+/* bands + nudge */
+.st-band{position:relative;margin:16px -16px 24px;width:390px}
+.st-band .bg{height:88px;background-size:100% auto;background-repeat:no-repeat}
+.st-band.a .bg{height:149px;margin-bottom:-61px}
+.st-band .see{position:absolute;left:16px;top:24px;width:32px;height:32px;border-radius:50%}
+.st-band .st-hrow{gap:8px}
+.st-band .st-hrow button{flex:none;width:160px;height:172px;background-size:100% 100%}
+.st-nudge{position:relative;margin:0 -16px 8px;width:390px;height:152px;margin-top:-8px;background-size:100% 100%}
+.st-nudge button{position:absolute;height:40px;border-radius:20px}
+.st-more{display:flex;align-items:center;justify-content:center;gap:8px;height:56px;color:#62625c;font:500 13px "NaN SuperX",sans-serif}
+.st-more .ic{font-size:22px}
+.st-more button{height:36px;padding:0 14px;border-radius:18px;background:#111;color:#fff;font:700 13px "Expo Arabic",sans-serif}
+.st-skel{height:128px;margin-bottom:8px;border-radius:20px;background:linear-gradient(90deg,#E4ECE8 0%,#F3F7F5 45%,#E4ECE8 90%);background-size:220% 100%;animation:shim 1.1s linear infinite}
+.st-empty{margin:4px 0 0;padding:28px 20px 24px;background:#fff;border-radius:20px;text-align:center;box-shadow:0 6px 20px rgba(18,18,18,.06)}
+.st-empty .e-icon{width:64px;height:64px;font-size:28px}
+.st-empty .e-body{margin-bottom:16px}
+.st-empty .e-btn{max-width:260px;margin:0 auto;height:48px}
+/* sticky header */
+.st-sticky{position:absolute;left:0;top:0;width:390px;z-index:21;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+  border-radius:0 0 24px 24px;box-shadow:0 6px 20px rgba(18,18,18,.08);transform:translateY(-105%);transition:transform .25s ease}
+.st-sticky.on{transform:none}
+.st-sticky .sb{height:33px;background-size:100% 100%}
+.st-sticky .st-lensrow{padding:8px 16px 0;height:56px}
+.st-sticky .st-hrow{padding-top:8px;padding-bottom:16px;height:64px}
+/* fixed parts */
+.st-pill{position:absolute;z-index:20;background-size:100% 100%;cursor:pointer}
+.st-pill .half{position:absolute;top:0;bottom:0}
+/* sheets */
+.st-opts{list-style:none;margin:0 0 12px;padding:0}
+.st-opts li{display:flex;align-items:center;gap:12px;min-height:56px;border-bottom:1px solid #eef2f0;cursor:pointer;font:500 16px/22px "NaN SuperX",sans-serif}
+.st-opts li:last-child{border-bottom:0}
+.st-opts li small{display:block;font:400 12.5px/18px "NaN SuperX",sans-serif;color:#62625c}
+.st-opts li .rd{margin-right:auto;width:24px;height:24px;border-radius:50%;border:2px solid #c9d1cd;flex:none;display:flex;align-items:center;justify-content:center}
+.st-opts li.on .rd{border-color:#111;background:#111;color:#00ffa8;font-size:14px}
+.st-opts li .lic{width:40px;height:40px;border-radius:50%;background:#f0f8f3;display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+.st-sec{margin:4px 0 8px;font:700 15px/22px "Expo Arabic",sans-serif;text-align:right}
+.st-seg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.st-seg button{height:40px;padding:0 16px;border-radius:20px;border:0;background:#f0f8f3;font:500 14px "NaN SuperX",sans-serif;color:#111;cursor:pointer;display:flex;align-items:center;gap:6px}
+.st-seg button.on{background:#111;color:#fff;font-weight:600}
+.st-seg button i.dot{width:8px;height:8px;border-radius:50%}
+.st-seg-note{font:400 12.5px/18px "NaN SuperX",sans-serif;color:#62625c;margin:-10px 0 16px;text-align:right}
+.st-tgl{display:flex;align-items:center;justify-content:space-between;height:52px;margin-bottom:12px;cursor:pointer;font:500 15px "NaN SuperX",sans-serif}
+.st-tgl .st-switch{position:relative;left:auto;top:auto;flex:none}
+.st-mhead{display:flex;align-items:center;gap:12px;margin:0 0 16px;text-align:right}
+.st-mhead .ph{width:56px;height:56px;border-radius:16px;background-size:cover;background-position:center;flex:none}
+.st-mhead b{display:block;font:700 18px/26px "Expo Arabic",sans-serif}
+.st-mhead span{display:flex;align-items:center;gap:4px;font:400 13px/18px "NaN SuperX",sans-serif;color:#62625c}
+.st-vals{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.st-vals button{height:76px;border-radius:18px;border:1.5px solid #e3e9e6;background:#fff;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#111}
+.st-vals button b{display:flex;align-items:center;gap:4px;font:700 20px/26px "NaN SuperX",sans-serif;direction:rtl}
+.st-vals button b .riyal{width:13px;height:14px}
+.st-vals button span{font:500 12px/16px "NaN SuperX",sans-serif;color:#62625c}
+.st-vals button.on{border-color:#111;box-shadow:inset 0 0 0 1px #111;background:#f6f2ff}
+.st-vals button.no span{color:#c0392b}
+.st-who{display:flex;gap:8px;margin:-4px 0 16px;flex-wrap:wrap}
+.st-who button{height:36px;padding:0 14px;border-radius:18px;border:1.5px solid #e3e9e6;background:#fff;font:500 13px "NaN SuperX",sans-serif;cursor:pointer}
+.st-who button.on{border-color:#111;background:#111;color:#fff}
+.st-code{display:flex;align-items:center;justify-content:space-between;gap:10px;height:56px;padding:0 8px 0 16px;border-radius:16px;background:#f6f2ff;border:1.5px dashed #bb8fff;margin:0 0 16px;
+  font:700 18px "NaN SuperX",monospace;letter-spacing:.08em;direction:ltr}
+.st-steps{list-style:none;margin:0 0 18px;padding:0;counter-reset:s}
+.st-steps li{display:flex;gap:12px;align-items:flex-start;text-align:right;margin-bottom:14px}
+.st-steps li::before{counter-increment:s;content:counter(s);flex:none;width:32px;height:32px;border-radius:50%;background:#d4f8fd;color:#111;font:700 14px/32px "NaN SuperX",sans-serif;text-align:center}
+.st-steps b{display:block;font:700 15px/22px "Expo Arabic",sans-serif}
+.st-steps div>span{display:block;font:400 13px/19px "NaN SuperX",sans-serif;color:#62625c}
+.e-btn.dim{background:#E3E8E5;color:#5d6460}
+/* collection pages */
+.st-cpage .hbody{padding-bottom:40px}
+.st-chero{margin:0 16px 12px;height:150px;border-radius:24px;background-size:cover;background-position:center;position:relative;overflow:hidden}
+.st-chero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(17,17,17,0) 40%,rgba(17,17,17,.6))}
+.st-chero div{position:absolute;right:16px;bottom:14px;z-index:1;color:#fff;text-align:right}
+.st-chero b{display:block;font:700 22px/30px "Expo Arabic",sans-serif}
+.st-chero span{font:400 13px "NaN SuperX",sans-serif;opacity:.9}
+.st-cgrid{display:grid;grid-template-columns:repeat(2,160px);gap:16px 22px;justify-content:center;padding:8px 0 24px}
+.st-cgrid button{width:160px;height:172px;background-size:100% 100%;border:0;cursor:pointer}

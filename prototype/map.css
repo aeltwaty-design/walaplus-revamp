@@ -1,0 +1,51 @@
+/* Home map card (map.js) */
+.hm{position:absolute;left:16px;width:358px;height:230px;border-radius:24px;overflow:hidden;background:#121716;z-index:4;pointer-events:none;
+  direction:ltr;font-family:"NaN SuperX","Expo Arabic",sans-serif;isolation:isolate;transform:translateZ(0)}
+.hm i{display:block;font-style:normal}
+.hm .art{position:absolute;left:0;top:-19px;width:358px;height:268px}
+.hm .art svg{display:block}
+.hm .mos{position:absolute;left:200px;top:131px;opacity:.3}
+.hm .road{position:absolute;left:250px;top:83px;margin:0;font:500 12px/16px "NaN SuperX","Expo Arabic",sans-serif;color:#9aa3a0;white-space:nowrap}
+/* radar: centre of "my location" */
+.hm .radar{position:absolute;left:186px;top:109px;width:0;height:0}
+.hm .radar>i{position:absolute;border-radius:50%}
+.hm .glow{left:-90px;top:-70px;width:180px;height:140px;background:rgba(var(--acc-rgb),.14);filter:blur(25px);animation:hmGlow 6s ease-in-out infinite}
+.hm .sweep{left:-98px;top:-98px;width:196px;height:196px;
+  background:conic-gradient(from 0deg,rgba(var(--acc-rgb),0) 0deg,rgba(var(--acc-rgb),0) 250deg,rgba(var(--acc-rgb),.07) 320deg,rgba(var(--acc-rgb),.22) 358deg,rgba(var(--acc-rgb),0) 360deg);
+  -webkit-mask:radial-gradient(circle closest-side,#000 0,#000 78%,transparent 100%);mask:radial-gradient(circle closest-side,#000 0,#000 78%,transparent 100%);
+  animation:hmSpin 10s linear infinite}
+.hm .ring{left:0;top:0;width:40px;height:40px;box-sizing:border-box;border:1.2px solid var(--acc);transform:translate(-50%,-50%);opacity:0;
+  animation:hmPing 7.5s cubic-bezier(.25,.5,.45,1) infinite}
+.hm .ring:nth-of-type(4){animation-delay:-2.5s}
+.hm .ring:nth-of-type(5){animation-delay:-5s}
+.hm .halo{left:-20px;top:-20px;width:40px;height:40px;background:rgba(var(--acc-rgb),.22);animation:hmHalo 3.75s ease-in-out infinite}
+.hm .me{left:-11px;top:-11px;width:16px;height:16px;box-sizing:content-box;border:3px solid #fff;background:var(--acc)}
+@keyframes hmPing{0%{width:40px;height:40px;opacity:0}8%{opacity:.5}60%{opacity:.18}100%{width:212px;height:212px;opacity:0}}
+@keyframes hmHalo{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.22);opacity:.7}}
+@keyframes hmGlow{0%,100%{opacity:.8;transform:scale(.94)}50%{opacity:1;transform:scale(1.06)}}
+@keyframes hmSpin{to{transform:rotate(360deg)}}
+/* pins */
+.hm .mp{position:absolute;display:flex;align-items:center;justify-content:flex-end;gap:4px;padding:4px 4px 4px 8px;background:#fff;
+  filter:drop-shadow(0 12px 14px rgba(18,18,18,.2));z-index:2;
+  transition:background-color .45s ease,transform .45s cubic-bezier(.3,1.4,.5,1),filter .45s ease}
+.hm .mp p{margin:0;font:700 12px/16px "NaN SuperX","Expo Arabic",sans-serif;color:#111;white-space:nowrap;display:flex}
+.hm .mp .d{display:inline-block;max-width:0;opacity:0;overflow:hidden;vertical-align:top;transition:max-width .45s ease,opacity .3s ease}
+.hm .mp.on{background:var(--acc);z-index:3;transform:scale(1.05);
+  filter:drop-shadow(0 12px 14px rgba(18,18,18,.2)) drop-shadow(0 0 10px rgba(var(--acc-rgb),.45))}
+.hm .mp.on p{color:var(--acc-ink)}
+.hm .mp.on .d{max-width:64px;opacity:1;transition:max-width .45s ease,opacity .35s ease .1s}
+.hm .lg{flex:none;background:center/100% 100% no-repeat}
+/* cluster, locate, glass bar */
+.hm .cluster{position:absolute;left:304px;top:26px;width:32px;height:32px;box-sizing:border-box;border-radius:50%;background:#111;border:1.5px solid rgba(255,255,255,.9);
+  display:flex;align-items:center;justify-content:center;font:700 12px/16px "NaN SuperX",sans-serif;color:#fff;filter:drop-shadow(0 12px 14px rgba(18,18,18,.2));z-index:2}
+.hm .locate{position:absolute;left:16px;top:16px;width:40px;height:40px;box-sizing:border-box;border-radius:50%;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:2}
+.hm .locate svg,.hm .btn svg{display:block}
+.hm .bar{position:absolute;left:8px;top:166px;width:342px;height:56px;box-sizing:border-box;border-radius:16px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 8px;z-index:4}
+.hm .btn{height:40px;display:flex;align-items:center;gap:8px;padding:0 16px;border-radius:999px;background:var(--acc);
+  font:600 14px/20px "NaN SuperX","Expo Arabic",sans-serif;color:var(--acc-ink);white-space:nowrap;direction:ltr}
+.hm .btn span{direction:rtl}
+.hm .sum{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap}
+.hm .sum b{font:600 14px/20px "NaN SuperX","Expo Arabic",sans-serif;color:#fff}
+.hm .sum span{font:400 12px/16px "NaN SuperX","Expo Arabic",sans-serif;color:#c1c1bc}
