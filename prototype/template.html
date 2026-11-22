@@ -71,6 +71,11 @@ summary{cursor:pointer;font-weight:700;font-size:13px;margin-bottom:8px}
 .rail.snap{scroll-snap-type:x mandatory;scroll-padding-inline:16px}
 .rail .inner{position:relative;direction:ltr;background-repeat:no-repeat;background-size:100% 100%}
 .rail .inner .snap-pt{scroll-snap-align:start}
+.rail.mq{overflow:hidden;width:390px;box-sizing:border-box}
+.mq-track{position:absolute;width:0;animation:mq linear infinite;will-change:transform}
+.mq-copy{position:absolute;top:0;background-repeat:no-repeat}
+.rail.mq.held .mq-track{animation-play-state:paused}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(var(--p))}}
 .dragging,.dragging *{cursor:grabbing!important}
 .sticky{position:absolute;top:0;left:0;width:390px;height:153px;z-index:21;background-size:100% 100%;
   transform:translateY(-100%);transition:transform .25s ease}
@@ -227,7 +232,7 @@ function homeSpec(v) {
     {y: 113, h: 172, minX: -680, snap: 1, auto: 1, dots: 291, cards: C([-680, -326, 28], 346, 'merchant', 172)},
     {y: 461, h: 96, minX: -830, cards: C([-830, -527, -224, 79], 295, 'merchant', 96)},
     {y: 1307, h: 400, minX: -358, snap: 1, pages: [-358, 16], cards: [-358, 16].flatMap(x => [0, 136, 272].flatMap(y => [[x, y, 358, 128, 'merchant'], [x + 8, y + 96, 193, 24, 'offer']]))},
-    {y: 1799, h: 104, minX: -227, cards: [[-210, 0, 104, 48], [-98, 0, 149, 48], [59, 0, 145, 48], [212, 0, 162, 48], [-227, 56, 117, 48], [-102, 56, 154, 48], [60, 56, 140, 48], [208, 56, 166, 48]].map(c => [...c, 'tab:stores'])},
+    {y: 1799, h: 104, minX: -227, marquee: 1, cards: [[-210, 0, 104, 48], [-98, 0, 149, 48], [59, 0, 145, 48], [212, 0, 162, 48], [-227, 56, 117, 48], [-102, 56, 154, 48], [60, 56, 140, 48], [208, 56, 166, 48]].map(c => [...c, 'tab:stores'])},
     {y: 1999, h: 204, minX: -334, cards: C([-334, -155, 24, 203], 171, 'offer', 204)},
     {y: 2789, h: 88, minX: -38, cards: C([-38, 46, 130, 214, 298], 76, 'merchant', 88)},
     {y: 2993, h: 168, minX: -298, cards: C([-298, -162, -26, 110, 246], 128, 'offer', 168)},
@@ -360,7 +365,7 @@ function build(entry) {
   }
   const host = y => (s.split && y >= s.split) ? [ctx.segB, s.split] : [s.split ? ctx.segA : cv, 0];
   for (const a of s.hot) { const [p, dy] = host(a[1]); makeHot(p, a, ctx, dy); }
-  if (s.rails) for (const r of s.rails) { const [p, dy] = host(r.y); const box = makeRail(r, ctx, dy); p.appendChild(box); if (r.auto) homeCarousel(box, r, p, dy); }
+  if (s.rails) for (const r of s.rails) { const [p, dy] = host(r.y); const box = r.marquee ? makeMarquee(r, ctx, dy) : makeRail(r, ctx, dy); p.appendChild(box); if (r.auto) homeCarousel(box, r, p, dy); }
   if (s.flip) { const [p, dy] = host(s.flip.y); p.appendChild(makeFlip(s, ctx, s.flip.y - dy)); }
   if (s.map) { const [p, dy] = host(s.map.y); p.appendChild(makeHomeMap(s.map, ctx, dy)); }
   if (s.pickRing) { const r = document.createElement('div'); r.className = 'sel-ring'; Object.assign(r.style, {left: '16px', top: s.pickRing + 'px', width: '358px', height: '84px'}); cv.appendChild(r); ctx.ring = r; }
@@ -411,6 +416,45 @@ function makeRail(r, ctx, dy) {
   r.cards.forEach(c => makeHot(inner, shift(c), ctx));
   box.appendChild(inner);
   dragScroll(box, 'x');
+  return box;
+}
+
+/* category rows: each row slides slowly to the right in an endless loop (two copies of the row, one period apart);
+   a touch holds it still */
+const MQ_SPEED = 22;  // px per second
+function makeMarquee(r, ctx, dy) {
+  const box = document.createElement('div'); box.className = 'rail mq';
+  const [ct, cb] = (MAN.edge && MAN.edge[r.img]) || ['#f0f8f3', '#f0f8f3'];
+  const light = c => Math.min(...[1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16))) > 200;
+  const et = light(ct) ? 2 : 0, eb = light(cb) ? 2 : 0;
+  Object.assign(box.style, {top: (r.y - dy - et) + 'px', height: (r.h + et + eb) + 'px', background: `linear-gradient(${ct} 0 50%, ${cb} 50% 100%)`});
+  const rows = {};
+  r.cards.forEach(c => (rows[c[1]] = rows[c[1]] || []).push(c));
+  const ys = Object.keys(rows).map(Number).sort((a, b) => a - b);
+  const W = 390 - r.minX;
+  ys.forEach((y, i) => {
+    const cs = rows[y].sort((a, b) => a[0] - b[0]);
+    const h = cs[0][3], x0 = cs[0][0], x1 = Math.max(...cs.map(c => c[0] + c[2]));
+    const gap = cs.length > 1 ? cs[1][0] - (cs[0][0] + cs[0][2]) : 8;
+    const period = x1 - x0 + gap;
+    const b0 = i === 0 ? 0 : (ys[i - 1] + rows[ys[i - 1]][0][3] + y) / 2;
+    const b1 = i === ys.length - 1 ? r.h : (y + h + ys[i + 1]) / 2;
+    const track = document.createElement('div'); track.className = 'mq-track';
+    Object.assign(track.style, {left: x0 + 'px', top: (et + b0) + 'px', height: (b1 - b0) + 'px', animationDuration: (period / MQ_SPEED) + 's'});
+    track.style.setProperty('--p', period + 'px');
+    for (const off of [0, -period]) {
+      const copy = document.createElement('div'); copy.className = 'mq-copy';
+      Object.assign(copy.style, {left: off + 'px', width: period + 'px', height: (b1 - b0) + 'px',
+        backgroundImage: `url(${IMG(r.img)})`, backgroundSize: `${W}px ${r.h}px`, backgroundPosition: `${-(x0 - r.minX)}px ${-b0}px`});
+      cs.forEach(c => makeHot(copy, [c[0] - x0, c[1] - b0, c[2], c[3], c[4]], ctx));
+      track.appendChild(copy);
+    }
+    box.appendChild(track);
+  });
+  let resume;
+  const hold = () => { clearTimeout(resume); box.classList.add('held'); };
+  const go = () => { clearTimeout(resume); resume = setTimeout(() => box.classList.remove('held'), 1200); };
+  box.addEventListener('pointerdown', hold); ['pointerup', 'pointercancel', 'pointerleave'].forEach(e => box.addEventListener(e, go));
   return box;
 }
 

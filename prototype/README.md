@@ -16,6 +16,7 @@ A clickable HTML prototype of every screen on the Figma page **Final UI** of the
 | `edge.js`, `edge.css` | Simulated edge cases: offline, slow, new user, location, camera, offer status, scan errors, search, favourites, reports. |
 | `stores.js`, `stores.css`, `stores_src/`, `stores_prep/` | The live Stores (marketplace) screen with 248 merchant copies across every category and filter. |
 | `map.js`, `map.css`, `map_src/` | The live Home map card: radar rings, glow sweep and pins that take the highlight in turn. |
+| `template.html` (`makeMarquee`) | The Home category rows slide slowly to the right in an endless loop; a touch holds them still. |
 | `corners.py` | Squares the rounded screen corners baked into the Figma exports. |
 | `icons/` | Lucide icons used by the edge-case screens. |
 | `tests/` | Playwright checks used while building (they expect the site served on port 8765). |
