@@ -78,7 +78,9 @@ summary{cursor:pointer;font-weight:700;font-size:13px;margin-bottom:8px}
 /* code sticker (makeSticker): covers the whole code and keeps peeling back to show the last 3 characters */
 .sk{position:absolute;z-index:4;pointer-events:none}
 .sk i{display:block;font-style:normal;position:absolute}
-.sk-under{position:absolute;background:#e6fff5;overflow:hidden}
+.sk-under{position:absolute;background:var(--pri-tint);overflow:hidden}
+.layer{--pri:#00ffa8;--pri-deep:#00c785;--pri-tint:#e6fff5}
+.layer.cl2{--pri:#47a1c1;--pri-deep:#2f86a6;--pri-tint:#edf6f9}   /* Aramco, Figma "Client theme · colours" */
 .sk-under b{position:absolute;font:700 24px/32px "Expo Arabic",sans-serif;color:#111;direction:ltr;white-space:nowrap}
 .sk-cover{position:absolute;background:#111}
 .sk-cover i{background-size:100% 100%}
@@ -196,7 +198,7 @@ summary{cursor:pointer;font-weight:700;font-size:13px;margin-bottom:8px}
 .flip:not(.busy):not(.flipped) .face.front{opacity:0}
 .flip.flipped .face.front,.flip:not(.flipped) .face.back{pointer-events:none}   /* a hidden face must not catch taps meant for the one in view */
 /* balance */
-.bal{position:absolute;left:16px;top:97px;width:362px;height:242px;background-size:100% 100%;z-index:7;
+.bal{position:absolute;left:16px;top:105px;width:362px;height:242px;background-size:100% 100%;z-index:7;
   clip-path:inset(0 0 152px 0 round 24px);opacity:0;transition:clip-path .32s cubic-bezier(.3,.7,.2,1),opacity .15s;pointer-events:none}
 .bal.on{clip-path:inset(0 0 0 0 round 24px);opacity:1;pointer-events:auto}
 /* peel */
@@ -205,7 +207,7 @@ summary{cursor:pointer;font-weight:700;font-size:13px;margin-bottom:8px}
 .peel .c{transform-origin:0% 100%}
 .peel.go .c{animation:peel .75s cubic-bezier(.5,0,.3,1) forwards}
 @keyframes peel{0%{transform:none}35%{transform:translate(-4px,-6px) rotate(-5deg)}100%{transform:translate(-420px,40px) rotate(-22deg);opacity:.2}}
-.codebox{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;background:#e6fff4;border:1.5px dashed #00c785;border-radius:14px;
+.codebox{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--pri-tint);border:1.5px dashed var(--pri-deep);border-radius:14px;
   font:700 24px "NaN SuperX",monospace;letter-spacing:.18em;color:#0d1714}
 /* scanner */
 .scanline{position:absolute;left:65px;top:210px;width:260px;height:260px;z-index:6;pointer-events:none;overflow:hidden;border-radius:18px}
@@ -269,7 +271,8 @@ body.full.ctl-open .ctl{background:var(--chip-on);color:var(--chip-on-ink)}
 </script>
 <script>
 const MAN = /*MANIFEST*/{};
-const IMG = n => `img/${n}.webp`;
+let CLIENT = '';   // '_c2' while Home 2 (Aramco client theme) is on: an image with an Aramco copy (Today's pick back, its sticker label, the reveal screen) uses it
+const IMG = n => `img/${CLIENT && MAN.img && MAN.img[n + CLIENT] ? n + CLIENT : n}.webp`;
 const size = n => MAN.img[n] || [390, 844];
 const $ = s => document.querySelector(s);
 const phone = $('#phone');
@@ -316,7 +319,7 @@ function homeSpec(v) {
     [16, 1927, 42, 28, 'stores:s4'], [16, 2745, 42, 28, 'toast:edit'], [0, 2925, 390, 52, 'merchant'], [0, 3457, 390, 64, 'merchant'],
     [16, 3185, 42, 28, 'stores:s6'], [16, 3749, 70, 28, 'toast:gift'], [16, 3945, 42, 28, 'push:h1'],
   ].map(a => [a[0], Y(a[1]), a[2], a[3], a[4]]);
-  if (s3) hot.push([16, 97, 362, 90, 'bal']);
+  if (s3) hot.push([16, 105, 362, 90, 'bal']);   // the card sits at y 105 in the Home 3 export
   const C = (xs, w, act, h2) => xs.map(x => [x, 0, w, h2, act]);
   const rails = [
     {y: 113, h: 172, minX: -680, snap: 1, auto: 1, dots: 291, cards: C([-680, -326, 28], 346, 'merchant', 172)},
@@ -411,6 +414,7 @@ function bgCss(name, w, yOff = 0) {
 }
 
 function build(entry) {
+  CLIENT = cfg.home === '2' ? '_c2' : '';
   const id = resolve(entry);
   const s = SCR[id];
   entry.id = id;
@@ -433,6 +437,7 @@ function build(entry) {
     return el;
   }
   el.className = 'layer page';
+  if (CLIENT && (id === 'home2' || id === 'tp_success')) el.classList.add('cl2');   // client colours for the HTML parts too
   el.style.background = MAN.bg[s.img] || '#fff';
   const sc = document.createElement('div'); sc.className = 'scroll';
   const cv = document.createElement('div'); cv.className = 'canvas';
@@ -500,6 +505,9 @@ function makeRail(r, ctx, dy) {
   const et = light(ct) ? 2 : 0, eb = light(cb) ? 2 : 0;
   Object.assign(box.style, {top: (r.y - dy - et) + 'px', height: (r.h + et + eb) + 'px', paddingTop: et + 'px', boxSizing: 'border-box',
     background: `linear-gradient(${ct} 0 50%, ${cb} 50% 100%)`});
+  // a banner behind the rail's top rows stays still while the cards slide over it (food offers rail)
+  const still = MAN.railbg && MAN.railbg[r.img];
+  if (still) box.style.background = `url(${IMG(r.img + '_bg')}) 0 ${et}px / 390px ${still}px no-repeat, ${cb}`;
   const inner = document.createElement('div'); inner.className = 'inner';
   Object.assign(inner.style, {width: w + 'px', height: r.h + 'px', backgroundImage: `url(${IMG(r.img)})`});
   const shift = a => [a[0] - r.minX, a[1], a[2], a[3], a[4]];
@@ -941,7 +949,7 @@ function makeDeck(p, s, ctx, y, dotsY) {
   items.forEach(el => p.appendChild(el));
   items[0].classList.add('on'); f.style.touchAction = 'pan-y';
   const d = document.createElement('div'); d.className = 'cdots tpdots';
-  Object.assign(d.style, {top: (dotsY - 6) + 'px', background: MAN.bg[s.img + '_flip'] || '#f0f8f3'});
+  Object.assign(d.style, {top: (dotsY - 1) + 'px', height: '14px', background: MAN.bg[s.img + '_flip'] || '#f0f8f3'});   // baked dots: y 2713-2721
   d.innerHTML = items.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('');
   p.appendChild(d);
   const dots = [...d.children];

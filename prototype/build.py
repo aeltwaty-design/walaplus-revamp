@@ -109,6 +109,42 @@ RAILS = [  # y, h, minX (Home 1 coordinates)
     (1999, 204, -334), (2789, 88, -38), (2993, 168, -298), (3249, 160, -290),
     (3537, 188, -198), (3793, 128, -242), (4009, 96, -602)]
 
+# Food offers rail (Tawaty, 22 Nov: "There is still background glitch behind the cards"): the rail's top 61 px sit over the
+# food banner (441:714, Aramco 585:5401), which ends at y 3054. Baked into the rail, that fade slid sideways with the cards.
+# Now the banner is a still strip behind the rail (Figma exports in ban_src/), and the rail's top rows are clear outside the
+# photos (128 x 108, r 20), keeping their drop shadow (black 10%, y 6, blur 18) as alpha.
+RAIL_BANNER = {6: {'cards': [-298, -162, -26, 110, 246], 'top': 64,
+                   'src': {'home1': 'food_banner_1', 'home2': 'food_banner_2', 'home3': 'food_banner_1'}}}
+def over_banner(rail, i, name, minx, rows, raw):
+    from PIL import ImageFilter
+    cfg_ = RAIL_BANNER[i]; T = cfg_['top']
+    W, H = rail.size
+    k = 4
+    big = Image.new('L', (W * k, H * k), 0); d = ImageDraw.Draw(big)
+    for X in cfg_['cards']:
+        x0 = (X - minx) * S * k
+        d.rounded_rectangle((x0, 0, x0 + 128 * S * k - 1, 108 * S * k - 1), 20 * S * k, fill=255)
+    m = big.resize((W, H), Image.LANCZOS)
+    sh = Image.new('L', (W, H), 0); sh.paste(m, (0, 6 * S))
+    sh = np.asarray(sh.filter(ImageFilter.GaussianBlur(9 * S))).astype(float) / 255 * .10
+    ap = np.asarray(m).astype(float) / 255
+    sa = sh * (1 - ap)
+    A = ap + sa
+    a = np.asarray(rail.convert('RGB')).astype(float)
+    inside = ap >= .99                                             # degrey() also ate grey plates inside photos left of
+    a[inside] = np.asarray(raw).astype(float)[inside]              # the frame (Alma): photos come back from the export
+    C = a * (ap / np.maximum(A, 1e-6))[..., None]
+    out = np.dstack([C, A * 255])
+    full = np.dstack([a, np.full(a.shape[:2], 255.)])
+    full[:T * S] = out[:T * S]
+    ban = Image.open(f"ban_src/{cfg_['src'][name]}.png").convert('RGB')
+    top = 2993 - 2901 if name != 'home3' else 2993 - 2901        # the banner moves with its rail on Home 3
+    strip = np.asarray(ban).astype(float)[top * S:]
+    pad = rows[strip.shape[0]:T * S]                               # below the banner: the page colour of each row
+    strip = np.vstack([strip, np.repeat(pad[:, None, :], strip.shape[1], 1)])
+    return (Image.fromarray(np.clip(full.round(), 0, 255).astype(np.uint8), 'RGBA'),
+            Image.fromarray(np.clip(strip.round(), 0, 255).astype(np.uint8), 'RGB'))
+
 def shift3(y):
     if y < 81: return y
     if y <= 556: return y + 102
@@ -134,17 +170,21 @@ for name, h in HOMES.items():
         reg = src.crop((x0, (OY + y) * S, (OX + 390) * S, (OY + y + rh) * S))
         # the export has a grey (152) canvas left of the frame: swap it for the page colour of each row
         bg = degrey(reg.convert('RGB'), -minx * S, page_rows(main, y, rh))
+        if i in RAIL_BANNER:
+            bg, strip = over_banner(bg, i, name, minx, page_rows(main, y, rh), reg.convert('RGB'))
+            save(strip, f'{name}_r{i}_bg', force=True)
         save(bg, f'{name}_r{i}', force=True)
         M.setdefault('edge', {})[f'{name}_r{i}'] = [
             rgb(tuple(int(v) for v in np.median(np.asarray(main.crop((0, (y - 3) * S, 390 * S, (y - 3) * S + 1)).convert('RGB')).reshape(-1, 3), 0))),
             rgb(tuple(int(v) for v in np.median(np.asarray(main.crop((0, (y + rh + 2) * S, 390 * S, (y + rh + 2) * S + 1)).convert('RGB')).reshape(-1, 3), 0)))]
+        if i in RAIL_BANNER: M.setdefault('railbg', {})[f'{name}_r{i}'] = RAIL_BANNER[i]['top']
     ty = 2319 if name != 'home3' else 2293
     M['bg'][name + '_flip'] = rgb(main.getpixel((6 * S, (ty + 180) * S)))
 
 # Home 3 spacer: one row just above the split, stretched
 h3 = Image.open(f'{OUT}/img/home3.webp').convert('RGBA')
-row = h3.crop((0, 193 * S, 390 * S, 194 * S)).resize((390 * S, 8))
-save(row, 'home3_spacer')
+row = h3.crop((0, 196 * S, 390 * S, 196 * S + 1)).resize((390 * S, 8))   # plain page, below the card's aqua depth edge (ends 195)
+save(row, 'home3_spacer', force=True)
 
 # ---- straight copies ----
 # ---- Today's pick faces: card on a transparent ground, its shadow kept as alpha ----
@@ -220,10 +260,56 @@ for n in ['bal_e', 'tp_success', 'm_c1a', 'm_c1b', 'm_c1c', 'm_c2', 'm_c3',
     cols(im, n)
     M['bg'][n] = rgb(im.getpixel((im.width // 2, im.height - 6)))
 
+# Expanded balance card (Home 3) on a clear ground: the card (358 x 236) and its aqua depth edge (offset 4, 6), both r 24,
+# so the export's white corners never show (Tawaty, 22 Nov: "There is extra green line, remove it")
+def bal_alpha(im):
+    k = 4
+    m = Image.new('L', (im.width * k, im.height * k), 0); d = ImageDraw.Draw(m)
+    for x, y in ((0, 0), (4, 6)):
+        d.rounded_rectangle((x * S * k, y * S * k, (x + 358) * S * k - 1, (y + 236) * S * k - 1), 24 * S * k, fill=255)
+    out = im.convert('RGBA'); out.putalpha(m.resize(im.size, Image.LANCZOS))
+    return out
+save(bal_alpha(Image.open(f'{OUT}/img/bal_e.webp')), 'bal_e', force=True)
+
 # ---- code stickers (22 Nov): the "اكشف الكود" label cut from the old cover, drawn on the new full-width sticker ----
 save(load('o2b_tall').crop(((16 + 47) * S, (420 + 20) * S, (16 + 244) * S, (420 + 56) * S)), 'sk_label', force=True)
 save(load('m_c1a').crop((162 * S, 1569 * S, 186 * S, 1594 * S)), 'vp_coin', force=True)
 save(load('tp_back').crop(((36 + 39) * S, (111 + 11) * S, (36 + 236) * S, (111 + 47) * S)), 'sk_label_tp', force=True)
+
+# ---- client theme, Aramco on Home 2 (Tawaty, 22 Nov: "The green colors shall be changed to client's theme color when i
+# change the theme"). Only the primary (aquamarine) family changes; tags stay (his rule of 21 Nov). Each pixel is read as a
+# blend of the two nearest palette colours and rebuilt from their Aramco values (Figma "Client theme · colours", Aramco
+# mode), with the leftover difference added back, so tints, glows and antialiased edges follow and greys stay put.
+CLIENT_PAL = [('ffffff', 'ffffff'), ('111111', '111111'), ('00ffa8', '47a1c1'), ('00cc88', '2f86a6'),
+              ('e6fff5', 'edf6f9'), ('f0f8f3', 'f0f6f8')]
+def client_skin(im, keep=()):
+    hx = lambda h: np.array([int(h[i:i + 2], 16) for i in (0, 2, 4)], float)
+    P = np.stack([hx(a) for a, _ in CLIENT_PAL]); Q = np.stack([hx(b) for _, b in CLIENT_PAL])
+    a = np.asarray(im).astype(float); px = a[..., :3].reshape(-1, 3)
+    best = np.full(len(px), 1e9); out = px.copy()
+    for i in range(len(P)):
+        for j in range(i + 1, len(P)):
+            if not (P[i] != Q[i]).any() and not (P[j] != Q[j]).any(): continue   # white-ink blends never change
+            d = P[j] - P[i]
+            t = np.clip(((px - P[i]) @ d) / (d @ d), 0, 1)
+            proj = P[i] + t[:, None] * d
+            dist = np.linalg.norm(px - proj, axis=1)
+            better = (dist < best) & (dist < 24)
+            best = np.where(better, dist, best)
+            out[better] = (Q[i] + t[better, None] * (Q[j] - Q[i])) + (px[better] - proj[better])
+    # a pixel closer to the white-ink line than to any green blend stays as it is
+    wk = P[0] - P[1]; t = np.clip(((px - P[1]) @ wk) / (wk @ wk), 0, 1)
+    grey = np.linalg.norm(px - (P[1] + t[:, None] * wk), axis=1) <= best
+    out[grey] = px[grey]
+    out = out.reshape(a.shape[:2] + (3,))
+    for x0, y0, x1, y1 in keep:
+        out[y0 * S:y1 * S, x0 * S:x1 * S] = a[y0 * S:y1 * S, x0 * S:x1 * S, :3]
+    a[..., :3] = out
+    return Image.fromarray(np.clip(a.round(), 0, 255).astype(np.uint8), im.mode)
+tb2 = client_skin(Image.open(f'{OUT}/img/tp_back.webp').convert('RGBA'))
+save(tb2, 'tp_back_c2', force=True)
+save(tb2.convert('RGB').crop(((36 + 39) * S, (111 + 11) * S, (36 + 236) * S, (111 + 47) * S)), 'sk_label_tp_c2', force=True)
+save(client_skin(Image.open(f'{OUT}/img/tp_success.webp').convert('RGB'), keep=[(31, 296, 80, 322)]), 'tp_success_c2', force=True)
 
 # ---- Afiya cover on merchant C1 (Tawaty's photos, 22 Nov): photos plus the white buttons and logo tile cut from the export ----
 COVER = ['p1_fitness', 'p2_redvelvet', 'p3_chicken', 'p4_brownie', 'p5_mealplan']
