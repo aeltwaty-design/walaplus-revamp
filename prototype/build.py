@@ -161,10 +161,61 @@ for n in ['tp_front', 'tp_back']:
     save(shadow, n, force=True)
     M['bg'][n] = '#ffffff'
 
+# R2 and R3 without the live clock pill (Tawaty, 22 Nov: "Remove this element"): the success screen o2b_success has the
+# same background there, so the pill box is refilled from it; R3 is R2 under a dim layer, fitted per channel
+PILL = (370, 130, 800, 236)   # 3x px, the pill is 125-265 x 45-77
+def unpill(im, n):
+    src = load('o2b_success').convert('RGB')
+    patch = np.asarray(src.crop(PILL)).astype(float)
+    if n == 'r3':
+        ring = (PILL[0] - 30, PILL[1] - 30, PILL[2] + 30, PILL[3] + 30)
+        a = np.asarray(src.crop(ring)).astype(float); c = np.asarray(im.convert('RGB').crop(ring)).astype(float)
+        keep = np.ones(a.shape[:2], bool); keep[30:-30, 30:-30] = False
+        for ch in range(3):
+            A = np.stack([a[..., ch][keep], np.ones(keep.sum())], 1)
+            k, t = np.linalg.lstsq(A, c[..., ch][keep], rcond=None)[0]
+            patch[..., ch] = patch[..., ch] * k + t
+    out = im.copy()
+    out.paste(Image.fromarray(np.clip(patch.round(), 0, 255).astype(np.uint8)).convert('RGBA'), PILL[:2])
+    return out
+
+# R0 without the third option, the 50-riyal voucher (Tawaty, 22 Nov: "And this one too"). The sheet is pinned to the bottom,
+# so like Figma auto layout its top moves down by the row plus its gap (84 + 8). The camera behind the new gap comes from
+# F1 (same camera, sheet lower down); both sheets' shadows (r 32, y -8, blur 32) are measured from R0 and moved with it.
+def drop_voucher(im):
+    from PIL import ImageFilter
+    D, TOP, FTOP, R = 92, 371, 495, 32
+    NTOP = TOP + D
+    r0 = np.asarray(im.convert('RGB')).astype(float)
+    f1 = np.asarray(load('f1').convert('RGB')).astype(float)
+    W = r0.shape[1]
+    Y0, Y1 = 330, NTOP + R                   # rows rebuilt from the camera: shadow, gap and the new top corners
+    def shape(top, ss=4):                    # antialiased rounded-top sheet over rows Y0-60 .. Y1+60
+        ys = (np.arange((Y0 - 60) * S * ss, (Y1 + 60) * S * ss) + .5) / (S * ss); xs = (np.arange(W * ss) + .5) / (S * ss)
+        X, Yg = np.meshgrid(xs, ys)
+        cx = np.clip(X, R, 390 - R); cy = top + R
+        inside = (Yg >= top) & ((Yg >= cy) | ((X - cx) ** 2 + (Yg - cy) ** 2 <= R * R))
+        return inside.reshape(-1, ss, W, ss).mean((1, 3))
+    def shade(top):                          # 1 - shadow alpha; fitted on R0 vs F1: 0.20, 10 px up, sigma 12
+        m = shape(top - 10)
+        g = np.asarray(Image.fromarray((m * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(12 * S))).astype(float) / 255
+        return (1 - .20 * g)[60 * S:-60 * S, :, None]
+    A = shape(NTOP)[60 * S:-60 * S, :, None]
+    bg = f1[Y0 * S:Y1 * S] / shade(FTOP)     # F1 camera with F1's own sheet shadow taken out
+    edge = bg * shade(NTOP)
+    moved = r0[(Y0 - D) * S:(Y1 - D) * S] if Y0 - D >= 0 else None
+    sheet = np.where(A >= .999, r0[(Y0 - D) * S:(Y1 - D) * S], 255.0)
+    out = r0.copy()
+    out[Y0 * S:Y1 * S] = A * sheet + (1 - A) * edge
+    out[Y1 * S:(643 + D) * S] = r0[(Y1 - D) * S:643 * S]   # header and the first two options, moved down
+    return Image.fromarray(np.clip(out.round(), 0, 255).astype(np.uint8)).convert('RGBA')
+
 for n in ['bal_e', 'tp_success', 'm_c1a', 'm_c1b', 'm_c1c', 'm_c2', 'm_c3',
           'o2a_full', 'o2b_full', 'o2b_success', 'o2c_full',
           'o2c_online', 'r0', 'r1', 'r2', 'r3', 'f1', 'f2', 'f3', 'f4', 'h1', 'h2']:
     im = load_sq(n)
+    if n in ('r2', 'r3'): im = unpill(im, n)
+    if n == 'r0': im = drop_voucher(im)
     save(im, n, force=True)
     cols(im, n)
     M['bg'][n] = rgb(im.getpixel((im.width // 2, im.height - 6)))
