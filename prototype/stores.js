@@ -178,10 +178,11 @@ const sortOf = st => { const s = st.sorts[st.lens] || defSort(st.lens); return s
 const OTYPES = [['all', 'كل العروض', null, ''], ['disc', 'خصومات', '#00ffa8', 'aqua'], ['b11', '1+1', '#fcc128', 'gold'], ['b21', '2+1', '#fcc128', 'gold']];
 const F0 = () => ({ch: 'any', dist: 0, rating: 0, has: [], fav: false, none: false});
 
-function initState(lens, preset) {
+function initState(lens, preset, cat) {
   const L = {s1: 'all', s3: 'all', s4: 'offers', s5: 'cash', s6: 'vouch'}[lens] || lens || 'all';
   const st = {lens: L, path: [], otype: 'all', within: true, sorts: {}, f: F0(), n: 12, nudgeOff: false};
   if (preset === 's4') { st.path = ['food']; st.otype = 'b11'; }
+  if (cat && TREE.some(t => t.id === cat)) st.path = [cat];
   return st;
 }
 function lensOK(m, st, otype = st.otype) {
@@ -398,7 +399,7 @@ function itemsHtml(ctx, from, to) {
 
 HTMLR.stores = ctx => {
   const e = ctx.entry, el = ctx.el;
-  const st = e.st || (e.st = initState(e.lens, e.preset));
+  const st = e.st || (e.st = initState(e.lens, e.preset, e.cat));
   e.label = 'Stores · ' + LENS_LABEL[st.lens];
   el.className = 'layer page st-layer';
   const locLine = locOn()

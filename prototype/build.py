@@ -220,6 +220,11 @@ for n in ['bal_e', 'tp_success', 'm_c1a', 'm_c1b', 'm_c1c', 'm_c2', 'm_c3',
     cols(im, n)
     M['bg'][n] = rgb(im.getpixel((im.width // 2, im.height - 6)))
 
+# ---- code stickers (22 Nov): the "اكشف الكود" label cut from the old cover, drawn on the new full-width sticker ----
+save(load('o2b_tall').crop(((16 + 47) * S, (420 + 20) * S, (16 + 244) * S, (420 + 56) * S)), 'sk_label', force=True)
+save(load('m_c1a').crop((162 * S, 1569 * S, 186 * S, 1594 * S)), 'vp_coin', force=True)
+save(load('tp_back').crop(((36 + 39) * S, (111 + 11) * S, (36 + 236) * S, (111 + 47) * S)), 'sk_label_tp', force=True)
+
 # ---- Afiya cover on merchant C1 (Tawaty's photos, 22 Nov): photos plus the white buttons and logo tile cut from the export ----
 COVER = ['p1_fitness', 'p2_redvelvet', 'p3_chicken', 'p4_brownie', 'p5_mealplan']
 M['cover'] = []
@@ -324,6 +329,7 @@ tpl = tpl.replace('/*STORES_CSS*/', open('stores.css', encoding='utf-8').read())
 # Home map card: live HTML (map.js), pin logos from map_src
 tpl = tpl.replace('/*MAP_CSS*/', open('map.css', encoding='utf-8').read())
 tpl = tpl.replace('/*MAP_JS*/', open('map.js', encoding='utf-8').read().replace('/*MAPART*/', open('map_src/art.svg', encoding='utf-8').read()))
+tpl = tpl.replace('/*RIYAL*/', open('riyal.txt').read().strip())
 tpl = tpl.replace('/*STORES_JS*/', open('stores.js', encoding='utf-8').read().replace('/*RIYAL*/', open('riyal.txt').read().strip()))
 open(f'{OUT}/index.html', 'w', encoding='utf-8').write(tpl.replace('/*MANIFEST*/{}', json.dumps(M)))
 tot = sum(os.path.getsize(f'{OUT}/img/' + f) for f in os.listdir(OUT + '/img'))

@@ -75,6 +75,37 @@ summary{cursor:pointer;font-weight:700;font-size:13px;margin-bottom:8px}
 .rail.mq{overflow:hidden;width:390px;box-sizing:border-box;touch-action:pan-y;-webkit-user-select:none;user-select:none}
 .mq-track{position:absolute;width:0;will-change:transform}
 .mq-copy{position:absolute;top:0;background-repeat:no-repeat}
+/* code sticker (makeSticker): covers the whole code and keeps peeling back to show the last 3 characters */
+.sk{position:absolute;z-index:4;pointer-events:none}
+.sk i{display:block;font-style:normal;position:absolute}
+.sk-under{position:absolute;background:#e6fff5;overflow:hidden}
+.sk-under b{position:absolute;font:700 24px/32px "Expo Arabic",sans-serif;color:#111;direction:ltr;white-space:nowrap}
+.sk-cover{position:absolute;background:#111}
+.sk-cover i{background-size:100% 100%}
+.sk-shade{display:none}
+.sk-flapw{position:absolute;left:-12px;top:-12px;right:-12px;bottom:-12px;filter:drop-shadow(-2px 2px 3px rgba(0,0,0,.3))}
+.sk-flapw .sk-flap{inset:0;display:none}
+.sk.c .sk-under,.sk.c .sk-shade,.sk.c .sk-flapw{display:none}
+/* voucher values on merchant C1 (makeVouPick) */
+.vp{position:absolute;z-index:4}
+.vp-val{background:#111;overflow:hidden;pointer-events:none}
+.vp-num{position:absolute;right:0;top:0;height:100%;display:flex;align-items:center;gap:6.3px;direction:ltr;color:#fff;font:700 36px/44px "NaN SuperX",sans-serif;transition:opacity .2s,transform .2s}
+.vp-num .riyal{width:26px;height:29.5px}
+.vp-num.out{opacity:0;transform:translateY(-10px)}
+.vp-num.in{opacity:0;transform:translateY(10px);transition:none}
+.vp-chips{background:#fff}
+.vp-chips button{all:unset;box-sizing:border-box;position:absolute;top:0;height:38px;border:1px solid #e6e6df;border-radius:999px;background:#fff;color:#111;display:flex;align-items:center;justify-content:center;gap:2.8px;direction:ltr;
+  font:600 15px/18px "NaN SuperX",sans-serif;cursor:pointer;transition:background .2s,color .2s,border-color .2s;-webkit-tap-highlight-color:transparent}
+.vp-chips button.on{background:#111;border-color:#111;color:#fff}
+.vp-chips button i{font:600 12.5px/16px "NaN SuperX",sans-serif;font-style:normal;color:#009e6a;margin-right:3px}
+.vp-chips button.on i{color:#00ffa8}
+.vp-chips .riyal{width:10.7px;height:11.8px;position:relative;top:-.65px}
+.vp-price{background:#fff;pointer-events:none}
+.vp-pr{position:absolute;right:0;top:0;height:100%;display:flex;align-items:center;direction:rtl;color:#111}
+.vp-pr b{font:700 20px/25px "NaN SuperX",sans-serif;margin-left:3px}
+.vp-pr img{width:24px;height:25px;display:block}
+.vp-pr s{font:400 16px/16px "NaN SuperX",sans-serif;color:#62625c;margin-right:8px;position:relative;top:.67px}
+.vp-pr em{font:600 12.5px/16px "NaN SuperX",sans-serif;font-style:normal;background:#00ffa8;color:#111;border-radius:999px;height:20px;width:76px;justify-content:center;display:flex;align-items:center;margin-right:8px;white-space:nowrap}
 /* Afiya cover on merchant C1 (makeCover) */
 .cv{position:absolute;left:0;top:0;width:390px;height:330px;z-index:4;touch-action:pan-y;-webkit-user-select:none;user-select:none;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .cv i{display:block;font-style:normal}
@@ -140,6 +171,7 @@ summary{cursor:pointer;font-weight:700;font-size:13px;margin-bottom:8px}
 .flip .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background-size:100% 100%}
 .flip .back{transform:rotateY(180deg)}
 .flip:not(.busy):not(.flipped) .face.front{opacity:0}
+.flip.flipped .face.front,.flip:not(.flipped) .face.back{pointer-events:none}   /* a hidden face must not catch taps meant for the one in view */
 /* balance */
 .bal{position:absolute;left:16px;top:97px;width:362px;height:242px;background-size:100% 100%;z-index:7;
   clip-path:inset(0 0 152px 0 round 24px);opacity:0;transition:clip-path .32s cubic-bezier(.3,.7,.2,1),opacity .15s;pointer-events:none}
@@ -265,7 +297,7 @@ function homeSpec(v) {
     {y: 113, h: 172, minX: -680, snap: 1, auto: 1, dots: 291, cards: C([-680, -326, 28], 346, 'merchant', 172)},
     {y: 461, h: 96, minX: -830, cards: C([-830, -527, -224, 79], 295, 'merchant', 96)},
     {y: 1307, h: 400, minX: -358, snap: 1, pages: [-358, 16], cards: [-358, 16].flatMap(x => [0, 136, 272].flatMap(y => [[x, y, 358, 128, 'merchant'], [x + 8, y + 96, 193, 24, 'offer']]))},
-    {y: 1799, h: 104, minX: -227, marquee: 1, cards: [[-210, 0, 104, 48], [-98, 0, 149, 48], [59, 0, 145, 48], [212, 0, 162, 48], [-227, 56, 117, 48], [-102, 56, 154, 48], [60, 56, 140, 48], [208, 56, 166, 48]].map(c => [...c, 'tab:stores'])},
+    {y: 1799, h: 104, minX: -227, marquee: 1, cards: [[-210, 0, 104, 48, 'health'], [-98, 0, 149, 48, 'beauty'], [59, 0, 145, 48, 'retail'], [212, 0, 162, 48, 'food'], [-227, 56, 117, 48, 'svc'], [-102, 56, 154, 48, 'edu'], [60, 56, 140, 48, 'travel'], [208, 56, 166, 48, 'home']].map(([x, y, w, h, c]) => [x, y, w, h, 'cats:' + c])},
     {y: 1999, h: 204, minX: -334, cards: C([-334, -155, 24, 203], 171, 'offer', 204)},
     {y: 2789, h: 88, minX: -38, cards: C([-38, 46, 130, 214, 298], 76, 'merchant', 88)},
     {y: 2993, h: 168, minX: -298, cards: C([-298, -162, -26, 110, 246], 128, 'offer', 168)},
@@ -281,7 +313,7 @@ function homeSpec(v) {
 const back = [334, 64, 40, 40, 'back'], fav = [20, 64, 40, 40, 'fav'];
 const SCR = {
   home1: homeSpec('1'), home2: homeSpec('2'), home3: homeSpec('3'),
-  m_c1a: {h: 2118, label: 'Merchant C1 · full', cover: 1, hot: [back, fav, [61, 64, 40, 40, 'share'], [32, 612, 326, 45, 'offer'], [16, 728, 174, 131, 'scrollTo:1250'], [200, 728, 174, 129, 'scrollTo:971'], [16, 871, 358, 80, 'toast:cashback'],
+  m_c1a: {h: 2118, label: 'Merchant C1 · full', cover: 1, vpick: 1, hot: [back, fav, [61, 64, 40, 40, 'share'], [32, 612, 326, 45, 'offer'], [16, 728, 174, 131, 'scrollTo:1250'], [200, 728, 174, 129, 'scrollTo:971'], [16, 871, 358, 80, 'cashStore'],
     [16, 1006, 144, 224, 'offer'], [170, 1006, 204, 224, 'offer'], [30, 1608, 161, 42, 'toast:gift'], [199, 1608, 161, 42, 'toast:gift'], [16, 2025, 358, 46, 'toast:terms']]},
   m_c1b: {h: 1872, label: 'Merchant C1 · offers', cover: 1, hot: [back, fav, [61, 64, 40, 40, 'share'], [32, 612, 326, 45, 'offer'], [16, 728, 358, 224, 'offer'], [16, 962, 358, 224, 'offer'], [16, 1196, 358, 224, 'offer'], [16, 1779, 358, 46, 'toast:terms']]},
   m_c1c: {h: 1169, label: 'Merchant C1 · one offer', cover: 1, hot: [back, fav, [61, 64, 40, 40, 'share'], [16, 493, 358, 224, 'offer'], [16, 1076, 358, 46, 'toast:terms']]},
@@ -321,7 +353,7 @@ for (const [k, s] of Object.entries(SCR)) { if (!s.img) s.img = k; if (s.sheet) 
 function resolve(e) {
   switch (e.t) {
     case 'home': return 'home' + cfg.home;
-    case 'merchant': return 'm_' + cfg.merchant;
+    case 'merchant': return 'm_' + (e.v || cfg.merchant);
     case 'offer': {
       let m = e.mode;
       if (m === 'online' && cfg.offer !== 'o2c') m = 'full';
@@ -371,7 +403,7 @@ function build(entry) {
     el.append(scrim, p);
     ctx.canvas = p; ctx.dy = 96;
     sheetGestures(p, ctx);
-    if (entry.revealed && s.code) showRevealed(ctx);
+    if (entry.revealed && s.code) showRevealed(ctx); else if (s.code) offerSticker(ctx);
     if (window.decorate) decorate(ctx);
     return el;
   }
@@ -403,6 +435,7 @@ function build(entry) {
   if (s.map) { const [p, dy] = host(s.map.y); p.appendChild(makeHomeMap(s.map, ctx, dy)); }
   if (s.search) { const [p, dy] = host(s.search.y); p.appendChild(makeSearchRoll(s.search, dy)); }
   if (s.cover) cv.appendChild(makeCover());
+  if (s.vpick) makeVouPick(cv);
   if (s.pickRing) { const r = document.createElement('div'); r.className = 'sel-ring'; Object.assign(r.style, {left: '16px', top: s.pickRing + 'px', width: '358px', height: '84px'}); cv.appendChild(r); ctx.ring = r; }
   if (s.scanner) { const l = document.createElement('div'); l.className = 'scanline'; cv.appendChild(l); }
   if (s.clock) { const c = document.createElement('div'); c.className = 'clock'; cv.appendChild(c); ctx.clock = c; tickClock(c); }
@@ -423,7 +456,7 @@ function build(entry) {
     el.appendChild(t);
     cv.style.marginBottom = '0';
   }
-  if (entry.revealed && s.code) showRevealed(ctx);
+  if (entry.revealed && s.code) showRevealed(ctx); else if (s.code) offerSticker(ctx);
   // tap on empty area: flash tappable spots
   el.addEventListener('click', () => { if (dragMoved) return; el.classList.remove('hint'); void el.offsetWidth; el.classList.add('hint'); setTimeout(() => el.classList.remove('hint'), 750); });
   dragScroll(sc, 'y');
@@ -684,6 +717,8 @@ function makeFlip(s, ctx, y) {
   card.append(fr, bk); f.append(ub, card);
   ctx.flip = f; ctx.tpBack = bk;
   if (stackTpRevealed) addTpCode(bk, false);
+  else bk.appendChild(makeSticker({x: 36, y: 111, w: 326, h: 58, inset: 6, label: 'sk_label_tp', lx: 39, ly: 11, lw: 197, lh: 36, codeRight: 309, codeTop: 13, lift: .36,
+    live: () => { const tp = top_(); return f.classList.contains('flipped') && tp && tp.el === f.closest('.layer'); }}));
   return f;
 }
 let stackTpRevealed = false;
@@ -693,14 +728,141 @@ function addTpCode(bk, anim) {
   const u = document.createElement('div'); u.className = 'codebox'; u.innerHTML = '<span>WALA15</span>';
   u.style.fontSize = '20px';
   w.appendChild(u);
-  if (anim) {
+  const sk = liveSticker(bk);
+  if (anim && sk) flyOff(sk, w);
+  else if (anim) {
     const c = document.createElement('div'); c.className = 'c';
     c.style.background = `url(${IMG('tp_back')}) -36px -111px / 398px 403px no-repeat`;
     w.appendChild(c); requestAnimationFrame(() => requestAnimationFrame(() => w.classList.add('go')));
   }
+  if (sk && !anim) sk.remove();
   bk.appendChild(w);
   bk.querySelectorAll('.hs').forEach(h => { if (h.dataset.act === 'tpReveal') h.dataset.act = 'toast:copied'; });
   // rebind: actions read dataset at click time
+}
+
+/* Code stickers (Tawaty, 22 Nov): the black "اكشف الكود" cover hides the whole code; it keeps peeling back from its
+   right edge until the last 3 characters show, then lays flat again, in a smooth loop. The peeled part is the sticker's
+   pale back, folded over and foreshortened as it lifts, with a soft shadow on the card. */
+const SK_T = [1300, 650, 1300, 950];   // peel, hold, lay back, hold (ms)
+const SK_LIFT = .5;                    // how much of the folded part shows (1 = folded flat)
+function liveSticker(root) { const sk = [...root.querySelectorAll(':scope > .sk')].find(x => !x.classList.contains('c')); return sk || null; }
+function offerSticker(ctx) {
+  const [x, y, w, h] = ctx.s.code;
+  ctx.canvas.appendChild(makeSticker({x, y: y - ctx.dy, w, h, inset: 8, label: 'sk_label', lx: 47, ly: 20, lw: 197, lh: 36, codeRight: 331, codeTop: 22,
+    live: () => { const tp = top_(); return tp && tp.el && tp.el === ctx.el; }}));
+}
+function flyOff(sk, wrap) {
+  sk._stop = true; sk._paint(0); sk.classList.add('c');
+  Object.assign(sk.style, {left: '0px', top: '0px'});
+  wrap.appendChild(sk);
+  requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.add('go')));
+}
+function makeSticker(o) {
+  const el = document.createElement('div'); el.className = 'sk';
+  Object.assign(el.style, {left: o.x + 'px', top: o.y + 'px', width: o.w + 'px', height: o.h + 'px'});
+  const i = o.inset, W = o.w - 2 * i, H = o.h - 2 * i, r = 24 - i, R = i + W, M = 12;
+  const LIFT = o.lift || SK_LIFT;
+  el.innerHTML = `<div class="sk-under" style="left:${i}px;top:${i}px;width:${W}px;height:${H}px;border-radius:${r}px">` +
+      `<b style="right:${R - o.codeRight}px;top:${o.codeTop - i}px">WAL<span>A15</span></b></div>` +
+    `<i class="sk-shade" style="left:${i}px;top:${i}px;width:${W}px;height:${H}px"></i>` +
+    `<div class="sk-cover" style="left:${i}px;top:${i}px;width:${W}px;height:${H}px;border-radius:${r}px">` +
+      `<i style="left:${o.lx - i}px;top:${o.ly - i}px;width:${o.lw}px;height:${o.lh}px;background-image:url(${IMG(o.label)})"></i></div>` +
+    '<div class="sk-flapw"><i class="sk-flap"></i></div>';
+  const cover = el.querySelector('.sk-cover'), shade = el.querySelector('.sk-shade'), flap = el.querySelector('.sk-flap'), tail = el.querySelector('.sk-under span');
+  // rounded sticker outline, clockwise from the top-right corner (box coordinates)
+  const outline = [];
+  for (const [cx, cy, a0] of [[R - r, i + r, -90], [R - r, i + H - r, 0], [i + r, i + H - r, 90], [i + r, i + r, 180]])
+    for (let k = 0; k <= 6; k++) { const a = (a0 + k * 15) * Math.PI / 180; outline.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); }
+  const rect = [[i, i], [R, i], [R, i + H], [i, i + H]];
+  const half = (pts, T, B, sign) => {          // the part of a polygon on one side of the line T-B
+    const f = P => ((B[0] - T[0]) * (P[1] - T[1]) - (B[1] - T[1]) * (P[0] - T[0])) * sign, out = [];
+    pts.forEach((P, k) => { const Q = pts[(k + 1) % pts.length], fp = f(P), fq = f(Q);
+      if (fp >= 0) out.push(P);
+      if ((fp >= 0) !== (fq >= 0)) { const t = fp / (fp - fq); out.push([P[0] + (Q[0] - P[0]) * t, P[1] + (Q[1] - P[1]) * t]); } });
+    return out;
+  };
+  const poly = (pts, dx, dy) => 'polygon(' + pts.map(([a, b]) => `${(a - dx).toFixed(2)}px ${(b - dy).toFixed(2)}px`).join(',') + ')';
+  const grad = (dx, dy, w, h, sx, sy) => {     // CSS angle for direction (dx, dy) and where point (sx, sy) falls along it
+    const ang = Math.atan2(dx, -dy), L = Math.abs(w * Math.sin(ang)) + Math.abs(h * Math.cos(ang));
+    return [ang * 180 / Math.PI, (sx - (w / 2 - L / 2 * dx)) * dx + (sy - (h / 2 - L / 2 * dy)) * dy];
+  };
+  let reach = o.codeRight - 50;                // left edge of the last 3 characters, measured once the font is in
+  const measure = () => {                      // layout offsets, so a 3D-turned card (Today's pick mid-flip) measures right
+    const bb = tail.parentElement;
+    if (tail.offsetWidth > 0) reach = i + bb.offsetLeft + tail.offsetLeft;
+  };
+  const paint = p => {
+    if (p < .004) { cover.style.clipPath = ''; shade.style.display = flap.style.display = 'none'; return; }
+    const xr = reach - 1;                                         // full peel: a straight fold just left of the last 3 characters
+    const a = p * (R - xr), b = p * (H + (R - xr));               // it starts as a dog-ear at the top right corner
+    const T = [R - a, i], B = b <= H ? [R, i + b] : [R - (b - H), i + H];
+    const ux = B[0] - T[0], uy = B[1] - T[1], len = Math.hypot(ux, uy);
+    let nx = uy / len, ny = -ux / len;                            // unit normal towards the lifted (right) side
+    if ((R + 50 - T[0]) * nx + (i + H / 2 - T[1]) * ny < 0) { nx = -nx; ny = -ny; }
+    const side = ux * (i + H / 2 - T[1]) - uy * (R + 50 - T[0]) > 0 ? 1 : -1;
+    cover.style.clipPath = poly(half(rect, T, B, -side), i, i);  // the part still lying flat
+    let ext = 0;
+    const fl = half(outline, T, B, side).map(([px, py]) => {      // the lifted part, folded over and foreshortened
+      const d = (px - T[0]) * nx + (py - T[1]) * ny; ext = Math.max(ext, d);
+      return [px - (1 + LIFT) * d * nx, py - (1 + LIFT) * d * ny];
+    });
+    const e = ext * LIFT;
+    const [fa, f0] = grad(-nx, -ny, o.w + 2 * M, o.h + 2 * M, T[0] + M, T[1] + M);
+    Object.assign(flap.style, {display: 'block', clipPath: poly(fl, -M, -M),
+      background: `linear-gradient(${fa.toFixed(2)}deg, #b6c4bd ${f0.toFixed(1)}px, #e8eeeb ${(f0 + 3).toFixed(1)}px, #fff ${(f0 + e * .55).toFixed(1)}px, #d3ddd8 ${(f0 + e + 1).toFixed(1)}px)`});
+    const [sa, s0] = grad(nx, ny, W, H, T[0] - i, T[1] - i);
+    Object.assign(shade.style, {display: 'block', clipPath: poly(half(rect, T, B, side), i, i),
+      background: `linear-gradient(${sa.toFixed(2)}deg, rgba(0,50,30,.30) ${s0.toFixed(1)}px, rgba(0,50,30,.10) ${(s0 + 5).toFixed(1)}px, rgba(0,50,30,0) ${(s0 + 9 + 8 * p).toFixed(1)}px)`});
+  };
+  el._paint = paint;
+  // the loop runs only while the sticker can be seen
+  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const total = SK_T.reduce((a, b) => a + b, 0);
+  let t = 0, last = 0, raf = 0, idle = 0, measured = false;
+  const tick = now => {
+    raf = 0;
+    if (!el.isConnected && t > 0) return;
+    if (el._stop) return;
+    if (!el.isConnected || !o.live()) { last = 0; idle = setTimeout(wake, 400); return; }
+    if (!measured && (!document.fonts || document.fonts.status === 'loaded')) { measure(); measured = true; }
+    const dt = last ? Math.min(100, now - last) : 0; last = now;
+    t = (t + dt) % total || 1e-6;
+    const [a, h1, b] = SK_T;
+    paint(t < a ? ease(t / a) : t < a + h1 ? 1 : t < a + h1 + b ? 1 - ease((t - a - h1) / b) : 0);
+    raf = requestAnimationFrame(tick);
+  };
+  const wake = () => { clearTimeout(idle); if (!raf && !el._stop) raf = requestAnimationFrame(tick); };
+  wake();
+  return el;
+}
+
+/* Voucher values on merchant C1 (Tawaty, 22 Nov): the 50 / 100 / 200 chips switch, and the card value and the points
+   price follow. 10 points per riyal; only 100 carries the 15% discount, as in Figma. */
+const RIYAL = '<svg class="riyal" viewBox="0 0 1256 1256" aria-label="ريال"><path d="/*RIYAL*/"/></svg>';
+const VP = [{v: 200, x: 30, w: 105}, {v: 100, x: 143, w: 103, off: 15}, {v: 50, x: 255, w: 105}];
+function makeVouPick(cv) {
+  const fmt = n => n.toLocaleString('en-US');
+  const box = (cls, x, y, w, h) => { const d = document.createElement('div'); d.className = 'vp ' + cls; Object.assign(d.style, {left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px'}); cv.appendChild(d); return d; };
+  const val = box('vp-val', 244, 1446, 106, 42), chips = box('vp-chips', 28, 1517, 334, 38), price = box('vp-price', 28, 1566, 204, 31);
+  val.innerHTML = `<div class="vp-num" style="right:${350 - 344 + .63}px"></div>`;
+  const num = val.firstChild;
+  chips.innerHTML = VP.map(c => `<button data-v="${c.v}" style="left:${c.x - 28}px;width:${c.w}px;padding-right:${c.v === 50 ? 2 : c.v === 200 ? .66 : 0}px">${c.off ? `<i>-${c.off}%</i>` : ''}${RIYAL}<span>${c.v}</span></button>`).join('');
+  price.innerHTML = '<div class="vp-pr" style="right:4px"></div>';
+  const pr = price.firstChild;
+  let cur = 0;
+  const show = (v, anim) => {
+    const c = VP.find(x => x.v === v); if (!c || v === cur) return; cur = v;
+    chips.querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.v === v));
+    const full = v * 10, pts = c.off ? Math.round(full * (100 - c.off) / 100) : full;
+    pr.innerHTML = `<b>${fmt(pts)}</b><img src="${IMG('vp_coin')}" alt="">` + (c.off ? `<s>${fmt(full)}</s><em>خصم &lrm;${c.off}%</em>` : '');
+    const html = `${RIYAL}<span>${v}</span>`;
+    if (!anim) { num.innerHTML = html; return; }
+    num.classList.add('out');
+    setTimeout(() => { num.innerHTML = html; num.classList.remove('out'); num.classList.add('in'); void num.offsetWidth; num.classList.remove('in'); }, 160);
+  };
+  chips.addEventListener('click', ev => { const b = ev.target.closest('button'); if (!b || dragMoved) return; ev.stopPropagation(); show(+b.dataset.v, true); });
+  show(100, false);
 }
 
 /* revealed code box over a sheet/page that has s.code */
@@ -711,12 +873,15 @@ function showRevealed(ctx, anim) {
   const u = document.createElement('div'); u.className = 'u';
   u.style.background = `url(${IMG('o2b_after')}) -16px -${420 - 96}px / 390px auto no-repeat`;
   wrap.appendChild(u);
-  if (anim) {
+  const sk = liveSticker(ctx.canvas);
+  if (anim && sk) flyOff(sk, wrap);
+  else if (anim) {
     const c = document.createElement('div'); c.className = 'c';
     c.style.background = s.sheet ? `url(${IMG(s.img)}) ${-x}px ${-(y - 96)}px / 390px auto no-repeat` : `url(${IMG(s.img)}) ${-x}px ${-y}px / 390px auto no-repeat`;
     wrap.appendChild(c);
     requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.add('go')));
   }
+  if (sk && !anim) sk.remove();
   (ctx.canvas).appendChild(wrap);
   ctx.el.querySelectorAll('.hs').forEach(hh => { if (hh.dataset.act === 'reveal') hh.dataset.act = 'toast:copied'; });
 }
@@ -805,12 +970,15 @@ function act_(act, ctx, hsEl) {
       if (arg === 'stores' || arg === 'near') return resetTo([{t: 'home'}, {t: 'stores', lens: 's1', root: 1}]);
       if (arg === 'wallet') return resetTo([{t: 'home'}, {t: 'h1'}]);
       return;
+    case 'cats':   // a Home category chip opens Stores already drilled into that category
+      return resetTo([{t: 'home'}, {t: 'stores', lens: 's1', root: 1, cat: arg}]);
     case 'stores': {
       if (e.t === 'stores') { e.lens = arg; return replaceTop({t: 'stores', lens: arg}, 'none'); }
       return push({t: 'stores', lens: arg});
     }
     case 'locOn': cfg.loc = true; $('#c-loc').checked = true; saveCfg(); return replaceTop({t: 'stores', lens: 's1'}, 'fade');
     case 'merchant': return openMerchant(arg === 'v' ? 1250 : 0);
+    case 'cashStore': return push({t: 'merchant', v: 'c2'});   // the cashback card opens the cashback-only store screen
     case 'scrollTo': return ctx.scroll.scrollTo({top: +arg, behavior: 'smooth'});
     case 'offer': return push({t: 'offer', mode: 'tall', flow: 1});
     case 'expand': return replaceTop({t: 'offer', mode: cfg.offer === 'o2b' && e.revealed ? 'full' : 'full', flow: e.flow, revealed: e.revealed}, 'from-sheet');

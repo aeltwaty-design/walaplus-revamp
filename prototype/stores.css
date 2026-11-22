@@ -15,7 +15,7 @@
 .st-banners::-webkit-scrollbar{display:none}
 .st-banners>button{flex:none;width:300px;height:80px;border-radius:20px;background-size:100% 100%;scroll-snap-align:start}
 .st-banners::after{content:"";flex:none;width:8px}
-.st-dots{position:absolute;left:0;right:0;top:195px;height:8px;display:flex;justify-content:center;align-items:center;gap:6px;direction:ltr}
+.st-dots{position:absolute;left:0;right:0;top:195px;height:8px;display:flex;justify-content:center;align-items:center;gap:6px;direction:rtl}
 .st-dots i{width:5px;height:5px;border-radius:50%;background:#c4c4c4;transition:.25s}
 .st-dots i.on{width:21.67px;height:8px;border-radius:0;background:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEEAAAAYCAYAAACldpB6AAAB9UlEQVR42uWYz1XCQBDGf8QChEcBggeugg0INCA24L8GxArECqQD8eIVuXhEPXpRtACDFSQlePCLb18kISFBA5n38rLAsjvz7cx8M1uo1WpEkD3giexLBRgCB8A06p+sCHN6wCNwsQIAjIG63vtpgdAxjO8BH9osqwBU9bkK3EU9uI1yuRy28C1QMr4rAV2NPwE3AwDUgXsDAFOa+v05TNcwTxgHLOx5xRg4+mcAusBriJ6eN4/DPDgIhP6chT2XGyhEjv44TJrAA3AVcX4VsIGzqCB0gybPAeMFuJaCyzb+YcF9+rOAK/gosiLEkootSh2JWdyEhjeBwwjeGUe/tkejJgiVOXkgiUy04UQJ1eNwk8uL0qEI7Cih7fgSc5piA+fAyARhqCSSJ5kCu5aR7fMGgAO0AMfyFUR5klMvHK0McP1/yIkqyh+KPAAucxQCJ6L0X3VCT/FhrzkAbT8A/mLpMWjSurCAKHpuxTiVuzTWyCv6smcat3eYANsCxF7h02+pIHKT3CcMVhAMR4m+oRBPfKmyamDcKPZ7cfoVK+YmHhgtjZ0MnXwJOCbG3WJQF7mIdPi+z9tfYrMzy/B3Jb2kXWoqIPjb3roASbsDnMjgkcZuWgunDYJfKnrqwJbRKheBTb1LOlnPqE89jox9k4u7y1LyC3EFc2ow35+fAAAAAElFTkSuQmCC") center/100% 100% no-repeat}
 .st-search{height:64px;background-size:100% 100%;cursor:pointer}
