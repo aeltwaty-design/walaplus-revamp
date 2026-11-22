@@ -169,7 +169,20 @@ for n in ['bal_e', 'tp_success', 'm_c1a', 'm_c1b', 'm_c1c', 'm_c2', 'm_c3',
     cols(im, n)
     M['bg'][n] = rgb(im.getpixel((im.width // 2, im.height - 6)))
 
-# ---- tall sheets: crop from y 96 with rounded top corners ----
+# ---- Afiya cover on merchant C1 (Tawaty's photos, 22 Nov): photos plus the white buttons and logo tile cut from the export ----
+COVER = ['p1_fitness', 'p2_redvelvet', 'p3_chicken', 'p4_brownie', 'p5_mealplan']
+M['cover'] = []
+for i, n in enumerate(COVER):
+    ph = Image.open(f'cover_src/{n}.jpg').convert('RGB')
+    if not (REUSE and os.path.exists(f'{OUT}/img/cv_{i + 1}.webp')) or os.path.getmtime(f'cover_src/{n}.jpg') > os.path.getmtime(f'{OUT}/img/cv_{i + 1}.webp'):
+        ph.save(f'{OUT}/img/cv_{i + 1}.webp', 'WEBP', quality=88, method=6)
+    M['img'][f'cv_{i + 1}'] = [ph.width, ph.height]
+mc = load('m_c1a')
+save(mc.crop((334 * S, 64 * S, 374 * S, 104 * S)), 'cv_back', force=True)
+save(mc.crop((16 * S, 64 * S, 105 * S, 104 * S)), 'cv_pill', force=True)
+save(mc.crop((920, 788, 1129, 997)), 'cv_logo', force=True)      # tile 309,265 65x65 plus its 2.3 px outside stroke
+
+
 for n in ['o2a_tall', 'o2b_tall', 'o2c_tall', 'o2b_after']:
     im = load_sq(n).crop((0, 96 * S, 390 * S, 844 * S))
     im.putalpha(Image.composite(im.getchannel('A'), Image.new('L', im.size, 0),
