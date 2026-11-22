@@ -244,6 +244,8 @@ FONT_FILES = {
 }
 for dst, src in FONT_FILES.items():
     shutil.copy(os.path.join(FONTS, src), f'{OUT}/fonts/{dst}')
+# black (monochrome) emoji for the Home search roll: Noto Emoji, OFL, subset from Google Fonts
+shutil.copy('fonts_extra/noto-emoji.woff2', f'{OUT}/fonts/noto-emoji.woff2')
 
 tpl = open('template.html', encoding='utf-8').read()
 # edge cases: styles, behaviour and Lucide icons inlined
