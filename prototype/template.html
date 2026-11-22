@@ -28,6 +28,8 @@ body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14p
 .app{display:flex;gap:28px;justify-content:center;align-items:flex-start;min-height:calc(100vh - 32px)}
 .stage{flex:0 0 auto;position:sticky;top:16px}
 .phone-wrap{position:relative}
+/* the app is light only: the shell's dark mode (phone set to dark) must not reach text inside the phone (Tawaty, 22 Nov) */
+.phone{color:#111;color-scheme:light}
 .phone{position:relative;width:390px;height:844px;border-radius:0;overflow:hidden;background:#000;
   box-shadow:var(--shadow),0 0 0 10px #0b0f0e,0 0 0 11px #2a3330;transform-origin:top left;direction:rtl;
   font-family:var(--ar);-webkit-user-select:none;user-select:none}
@@ -333,7 +335,8 @@ function homeSpec(v) {
     {y: 3537, h: 188, minX: -198, cards: C([-198, -82, 34, 150, 266], 108, 'offer', 188)},
     {y: 3793, h: 128, minX: -242, cards: C([-242, 70], 304, 'readyToUse', 128)},
     {y: 4009, h: 96, minX: -602, cards: C([-602, -274, 54], 320, 'offer', 96)},
-  ].map((r, i) => ({...r, y: Y(r.y), img: `home${v}_r${i}`, ...(r.dots ? {dots: Y(r.dots)} : {})}));
+  ].map((r, i) => ({...r, y: Y(r.y), img: `home${v}_r${i}`, ...(r.dots ? {dots: Y(r.dots)} : {}),
+    ...(r.marquee ? {} : {minX: r.minX - 16})}));   // the rail images carry 16 px of page at the far end (build.py end_pad)
   return {img: 'home' + v, h, hot, rails, tab: {img: `home${v}_tab`, top: h - 84, hot: tabs(h - 84)}, tabId: 'home',
     flip: {y: Y(2319), dots: Y(2711)}, map: {y: Y(989), theme: v === '2' ? 'aramco' : 'wala'}, search: {y: Y(325)}, sav: s3 ? null : {y: Y(581), v}, split: s3 ? 195 : 0, label: 'Home ' + ({1: '1', 2: '2 · Aramco', 3: '3 · balance card'})[v]};
 }

@@ -109,12 +109,16 @@ RAILS = [  # y, h, minX (Home 1 coordinates)
     (1999, 204, -334), (2789, 88, -38), (2993, 168, -298), (3249, 160, -290),
     (3537, 188, -198), (3793, 128, -242), (4009, 96, -602)]
 
-# Food offers rail (Tawaty, 22 Nov: "There is still background glitch behind the cards"): the rail's top 61 px sit over the
-# food banner (441:714, Aramco 585:5401), which ends at y 3054. Baked into the rail, that fade slid sideways with the cards.
-# Now the banner is a still strip behind the rail (Figma exports in ban_src/), and the rail's top rows are clear outside the
-# photos (128 x 108, r 20), keeping their drop shadow (black 10%, y 6, blur 18) as alpha.
-RAIL_BANNER = {6: {'cards': [-298, -162, -26, 110, 246], 'top': 64,
-                   'src': {'home1': 'food_banner_1', 'home2': 'food_banner_2', 'home3': 'food_banner_1'}}}
+# Rails that start on a banner (Tawaty, 22 Nov: "There is still background glitch behind the cards", "Fix this glitch as
+# well"): baked into the rail, the banner's lower part slid sideways with the cards. Now the banner is a still strip behind
+# the rail (Figma exports in ban_src/), and the rail's top rows are clear outside the photos (r 20), keeping their drop
+# shadow (#121212 10%, y 6, blur 18) as alpha.
+#   rail 6, food offers: banner 441:714 / Aramco 585:5401 at y 2901, ends 3054 (61 px into the rail); photos 128 x 108
+#   rail 8, Dolce Pan:   banner 441:907 / Aramco 585:6037 at y 3433, ends 3608 (71 px into the rail); photos 108 x 108
+RAIL_BANNER = {6: {'cards': [-298, -162, -26, 110, 246], 'pw': 128, 'ph': 108, 'top': 64, 'by': 2901, 'ry': 2993,
+                   'src': {'home1': 'food_banner_1', 'home2': 'food_banner_2', 'home3': 'food_banner_1'}},
+               8: {'cards': [-198, -82, 34, 150, 266], 'pw': 108, 'ph': 108, 'top': 74, 'by': 3433, 'ry': 3537,
+                   'src': {'home1': 'dolce_banner_1', 'home2': 'dolce_banner_2', 'home3': 'dolce_banner_1'}}}
 def over_banner(rail, i, name, minx, rows, raw):
     from PIL import ImageFilter
     cfg_ = RAIL_BANNER[i]; T = cfg_['top']
@@ -123,7 +127,7 @@ def over_banner(rail, i, name, minx, rows, raw):
     big = Image.new('L', (W * k, H * k), 0); d = ImageDraw.Draw(big)
     for X in cfg_['cards']:
         x0 = (X - minx) * S * k
-        d.rounded_rectangle((x0, 0, x0 + 128 * S * k - 1, 108 * S * k - 1), 20 * S * k, fill=255)
+        d.rounded_rectangle((x0, 0, x0 + cfg_['pw'] * S * k - 1, cfg_['ph'] * S * k - 1), 20 * S * k, fill=255)
     m = big.resize((W, H), Image.LANCZOS)
     sh = Image.new('L', (W, H), 0); sh.paste(m, (0, 6 * S))
     sh = np.asarray(sh.filter(ImageFilter.GaussianBlur(9 * S))).astype(float) / 255 * .10
@@ -133,17 +137,29 @@ def over_banner(rail, i, name, minx, rows, raw):
     a = np.asarray(rail.convert('RGB')).astype(float)
     inside = ap >= .99                                             # degrey() also ate grey plates inside photos left of
     a[inside] = np.asarray(raw).astype(float)[inside]              # the frame (Alma): photos come back from the export
-    C = a * (ap / np.maximum(A, 1e-6))[..., None]
+    C = (a * ap[..., None] + 18 * sa[..., None]) / np.maximum(A, 1e-6)[..., None]
     out = np.dstack([C, A * 255])
     full = np.dstack([a, np.full(a.shape[:2], 255.)])
     full[:T * S] = out[:T * S]
     ban = Image.open(f"ban_src/{cfg_['src'][name]}.png").convert('RGB')
-    top = 2993 - 2901 if name != 'home3' else 2993 - 2901        # the banner moves with its rail on Home 3
+    top = cfg_['ry'] - cfg_['by']                                  # the same on Home 3, where both move together
     strip = np.asarray(ban).astype(float)[top * S:]
     pad = rows[strip.shape[0]:T * S]                               # below the banner: the page colour of each row
     strip = np.vstack([strip, np.repeat(pad[:, None, :], strip.shape[1], 1)])
     return (Image.fromarray(np.clip(full.round(), 0, 255).astype(np.uint8), 'RGBA'),
             Image.fromarray(np.clip(strip.round(), 0, 255).astype(np.uint8), 'RGB'))
+
+# 16 px of page at the far (left) end of every scrolling rail, so the last card stops 16 px from the edge, like the first
+# one does on the right (Tawaty, 22 Nov: "When this banner show app there should be a space of 16 px from the left").
+# Over a still banner strip the pad stays clear. The template moves each rail's minX 16 px to match.
+def end_pad(im, rows, clear):
+    im = im.convert('RGBA'); H = im.height
+    pad = np.dstack([np.repeat(rows[:, None, :], 16 * S, 1), np.full((H, 16 * S), 255.)])
+    pad[:clear * S, :, 3] = 0
+    out = Image.new('RGBA', (im.width + 16 * S, H), (0, 0, 0, 0))
+    out.paste(Image.fromarray(np.clip(pad.round(), 0, 255).astype(np.uint8), 'RGBA'), (0, 0))
+    out.paste(im, (16 * S, 0))
+    return out
 
 def shift3(y):
     if y < 81: return y
@@ -173,6 +189,8 @@ for name, h in HOMES.items():
         if i in RAIL_BANNER:
             bg, strip = over_banner(bg, i, name, minx, page_rows(main, y, rh), reg.convert('RGB'))
             save(strip, f'{name}_r{i}_bg', force=True)
+        if i != 3:   # not the endless category marquee
+            bg = end_pad(bg, page_rows(main, y, rh), RAIL_BANNER[i]['top'] if i in RAIL_BANNER else 0)
         save(bg, f'{name}_r{i}', force=True)
         M.setdefault('edge', {})[f'{name}_r{i}'] = [
             rgb(tuple(int(v) for v in np.median(np.asarray(main.crop((0, (y - 3) * S, 390 * S, (y - 3) * S + 1)).convert('RGB')).reshape(-1, 3), 0))),
