@@ -115,7 +115,11 @@ RAILS = [  # y, h, minX (Home 1 coordinates)
 # shadow (#121212 10%, y 6, blur 18) as alpha.
 #   rail 6, food offers: banner 441:714 / Aramco 585:5401 at y 2901, ends 3054 (61 px into the rail); photos 128 x 108
 #   rail 8, Dolce Pan:   banner 441:907 / Aramco 585:6037 at y 3433, ends 3608 (71 px into the rail); photos 108 x 108
-RAIL_BANNER = {6: {'cards': [-298, -162, -26, 110, 246], 'pw': 128, 'ph': 108, 'top': 64, 'by': 2901, 'ry': 2993,
+#   rail 0, top banner carousel (Tawaty, 22 Nov: "Remove the glitch here as well"): behind it are the header band's smile
+#   curve (441:185: gradient #C6FFE8 > #F6FFFB .55 > white, Aramco #cfe9f2 > #f5fafc; shadow y 6, blur 10, #121212 6%)
+#   and the page; Figma exports of it come out opaque, so it is drawn here from its path. Banners 346 x 172, r 28.
+RAIL_BANNER = {0: {'cards': [-680, -326, 28], 'pw': 346, 'ph': 172, 'r': 28, 'sh': 0, 'top': 172, 'ry': 113, 'render': 'header'},
+               6: {'cards': [-298, -162, -26, 110, 246], 'pw': 128, 'ph': 108, 'top': 64, 'by': 2901, 'ry': 2993,
                    'src': {'home1': 'food_banner_1', 'home2': 'food_banner_2', 'home3': 'food_banner_1'}},
                8: {'cards': [-198, -82, 34, 150, 266], 'pw': 108, 'ph': 108, 'top': 74, 'by': 3433, 'ry': 3537,
                    'src': {'home1': 'dolce_banner_1', 'home2': 'dolce_banner_2', 'home3': 'dolce_banner_1'}}}
@@ -127,10 +131,10 @@ def over_banner(rail, i, name, minx, rows, raw):
     big = Image.new('L', (W * k, H * k), 0); d = ImageDraw.Draw(big)
     for X in cfg_['cards']:
         x0 = (X - minx) * S * k
-        d.rounded_rectangle((x0, 0, x0 + cfg_['pw'] * S * k - 1, cfg_['ph'] * S * k - 1), 20 * S * k, fill=255)
+        d.rounded_rectangle((x0, 0, x0 + cfg_['pw'] * S * k - 1, cfg_['ph'] * S * k - 1), cfg_.get('r', 20) * S * k, fill=255)
     m = big.resize((W, H), Image.LANCZOS)
     sh = Image.new('L', (W, H), 0); sh.paste(m, (0, 6 * S))
-    sh = np.asarray(sh.filter(ImageFilter.GaussianBlur(9 * S))).astype(float) / 255 * .10
+    sh = np.asarray(sh.filter(ImageFilter.GaussianBlur(9 * S))).astype(float) / 255 * cfg_.get('sh', .10)
     ap = np.asarray(m).astype(float) / 255
     sa = sh * (1 - ap)
     A = ap + sa
@@ -141,17 +145,44 @@ def over_banner(rail, i, name, minx, rows, raw):
     out = np.dstack([C, A * 255])
     full = np.dstack([a, np.full(a.shape[:2], 255.)])
     full[:T * S] = out[:T * S]
-    ban = Image.open(f"ban_src/{cfg_['src'][name]}.png").convert('RGB')
-    top = cfg_['ry'] - cfg_['by']                                  # the same on Home 3, where both move together
-    strip = np.asarray(ban).astype(float)[top * S:]
-    pad = rows[strip.shape[0]:T * S]                               # below the banner: the page colour of each row
-    strip = np.vstack([strip, np.repeat(pad[:, None, :], strip.shape[1], 1)])
+    # the still strip starts 2 px above the rail (the rail box reaches 2 px up where its top edge is light)
+    if cfg_.get('render') == 'header':
+        ry = shift3(cfg_['ry']) if name == 'home3' else cfg_['ry']
+        strip = header_bg(name, ry - 2, ry + T)
+    else:
+        b = np.asarray(Image.open(f"ban_src/{cfg_['src'][name]}.png").convert('RGB')).astype(float)
+        b = b[(cfg_['ry'] - cfg_['by'] - 2) * S:]                   # the same on Home 3, where both move together
+        n = min(b.shape[0], (T + 2) * S)
+        below = rows[max(0, n - 2 * S):T * S]                       # below the banner: the page colour of each row
+        strip = np.vstack([b[:n], np.repeat(below[:, None, :], b.shape[1], 1)])
     return (Image.fromarray(np.clip(full.round(), 0, 255).astype(np.uint8), 'RGBA'),
             Image.fromarray(np.clip(strip.round(), 0, 255).astype(np.uint8), 'RGB'))
 
 # 16 px of page at the far (left) end of every scrolling rail, so the last card stops 16 px from the edge, like the first
 # one does on the right (Tawaty, 22 Nov: "When this banner show app there should be a space of 16 px from the left").
 # Over a still banner strip the pad stays clear. The template moves each rail's minX 16 px to match.
+def header_bg(name, y0, y1, k=4):
+    """Page plus the Home header band (smile curve, its gradient and drop shadow) for rows y0..y1, 390 wide."""
+    page, stops = (((240, 246, 248), [(0, (207, 233, 242)), (.55, (245, 250, 252)), (1, (255, 255, 255))]) if name == 'home2' else
+                   ((240, 248, 243), [(0, (198, 255, 232)), (.55, (246, 255, 251)), (1, (255, 255, 255))]))
+    W, H, M = 390 * S, (y1 - y0) * S, 60
+    bez = lambda t: tuple((1 - t) ** 3 * a + 3 * (1 - t) ** 2 * t * b + 3 * (1 - t) * t * t * c + t ** 3 * d
+                          for a, b, c, d in zip((390, 126.164), (260, 155.279), (130, 155.279), (0, 126.164)))
+    poly = [(0, 0), (390, 0)] + [bez(i / 400) for i in range(401)]
+    m = Image.new('L', (W * k, (y1 - y0 + M) * S * k), 0)
+    ImageDraw.Draw(m).polygon([(x * S * k, (y - y0 + 20) * S * k) for x, y in poly], fill=255)   # 20 px of margin above
+    m = m.resize((W, (y1 - y0 + M) * S), Image.LANCZOS)
+    from PIL import ImageFilter
+    sh = Image.new('L', m.size, 0); sh.paste(m, (0, 6 * S))
+    sh = np.asarray(sh.filter(ImageFilter.GaussianBlur(10 * S))).astype(float) / 255 * .06
+    a = np.asarray(m).astype(float) / 255
+    xs = (np.arange(W) + .5) / S / 390
+    st = np.array([p for p, _ in stops]); cl = np.array([c for _, c in stops], float)
+    g = np.stack([np.interp(xs, st, cl[:, c]) for c in range(3)], 1)[None]
+    out = np.array(page, float)[None, None] * (1 - sh[..., None]) + 18 * sh[..., None]
+    out = out * (1 - a[..., None]) + g * a[..., None]
+    return out[20 * S:20 * S + H]
+
 def end_pad(im, rows, clear):
     im = im.convert('RGBA'); H = im.height
     pad = np.dstack([np.repeat(rows[:, None, :], 16 * S, 1), np.full((H, 16 * S), 255.)])
@@ -288,6 +319,12 @@ def bal_alpha(im):
     out = im.convert('RGBA'); out.putalpha(m.resize(im.size, Image.LANCZOS))
     return out
 save(bal_alpha(Image.open(f'{OUT}/img/bal_e.webp')), 'bal_e', force=True)
+
+# Points coin shine (Tawaty, 22 Nov: "a reflection animation for the coin after each 5 seconds with a shine effect"): the
+# coin render's own silhouette (points-coin/wala-coin-B-clear-1024.png, the image on the Homes) masks the light sweep
+cm = Image.open('coin_src/coin.png').convert('RGBA').resize((32 * S, 32 * S), Image.LANCZOS)
+cmask = Image.new('RGBA', cm.size, (255, 255, 255, 0)); cmask.putalpha(cm.getchannel('A'))
+save(cmask, 'coin_mask', force=True)
 
 # ---- code stickers (22 Nov): the "اكشف الكود" label cut from the old cover, drawn on the new full-width sticker ----
 save(load('o2b_tall').crop(((16 + 47) * S, (420 + 20) * S, (16 + 244) * S, (420 + 56) * S)), 'sk_label', force=True)

@@ -199,6 +199,20 @@ summary{cursor:pointer;font-weight:700;font-size:13px;margin-bottom:8px}
 .flip .back{transform:rotateY(180deg)}
 .flip:not(.busy):not(.flipped) .face.front{opacity:0}
 .flip.flipped .face.front,.flip:not(.flipped) .face.back{pointer-events:none}   /* a hidden face must not catch taps meant for the one in view */
+/* points coin: every 5 s a band of light sweeps across the coin (masked to its silhouette), then a sparkle flashes on
+   its rim (Tawaty, 22 Nov) */
+.coin-fx{position:absolute;width:32px;height:32px;pointer-events:none;z-index:5}
+.coin-fx .sw{position:absolute;inset:0;overflow:hidden;-webkit-mask:var(--cm) center/100% 100% no-repeat;mask:var(--cm) center/100% 100% no-repeat}
+.coin-fx .sw::before{content:"";position:absolute;top:-40%;height:180%;left:4px;width:24px;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.4) 26%,#fff 44%,#fff 56%,rgba(255,255,255,.4) 74%,rgba(255,255,255,0)) 0 0/100% 100% no-repeat,
+    linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.75) 50%,rgba(255,255,255,0)) 0 0/100% 100% no-repeat;
+  background-size:24px 100%,6px 100%;background-position:0 0,30px 0;width:36px;
+  transform:translateX(-50px) rotate(24deg);animation:coinSweep 5s cubic-bezier(.4,0,.3,1) infinite}
+@keyframes coinSweep{0%,72%{transform:translateX(-50px) rotate(24deg)}94%,100%{transform:translateX(46px) rotate(24deg)}}
+.coin-fx .sp{position:absolute;left:17px;top:-1px;width:15px;height:15px;opacity:0;animation:coinSpark 5s ease-out infinite}
+.coin-fx .sp svg{display:block;width:100%;height:100%;filter:drop-shadow(0 0 2.5px rgba(255,255,255,.95))}
+@keyframes coinSpark{0%,87%{opacity:0;transform:scale(.2) rotate(0)}92%{opacity:1;transform:scale(1) rotate(45deg)}100%{opacity:0;transform:scale(.3) rotate(90deg)}}
+@media (prefers-reduced-motion: reduce){.coin-fx .sw::before,.coin-fx .sp{animation:none}}
 /* balance */
 .bal{position:absolute;left:16px;top:105px;width:362px;height:242px;background-size:100% 100%;z-index:7;
   clip-path:inset(0 0 152px 0 round 24px);opacity:0;transition:clip-path .32s cubic-bezier(.3,.7,.2,1),opacity .15s;pointer-events:none}
@@ -338,7 +352,7 @@ function homeSpec(v) {
   ].map((r, i) => ({...r, y: Y(r.y), img: `home${v}_r${i}`, ...(r.dots ? {dots: Y(r.dots)} : {}),
     ...(r.marquee ? {} : {minX: r.minX - 16})}));   // the rail images carry 16 px of page at the far end (build.py end_pad)
   return {img: 'home' + v, h, hot, rails, tab: {img: `home${v}_tab`, top: h - 84, hot: tabs(h - 84)}, tabId: 'home',
-    flip: {y: Y(2319), dots: Y(2711)}, map: {y: Y(989), theme: v === '2' ? 'aramco' : 'wala'}, search: {y: Y(325)}, sav: s3 ? null : {y: Y(581), v}, split: s3 ? 195 : 0, label: 'Home ' + ({1: '1', 2: '2 · Aramco', 3: '3 · balance card'})[v]};
+    flip: {y: Y(2319), dots: Y(2711)}, map: {y: Y(989), theme: v === '2' ? 'aramco' : 'wala'}, search: {y: Y(325)}, sav: s3 ? null : {y: Y(581), v}, coin: s3 ? {x: 326, y: 131} : {x: 165, y: 45}, split: s3 ? 195 : 0, label: 'Home ' + ({1: '1', 2: '2 · Aramco', 3: '3 · balance card'})[v]};
 }
 
 const back = [334, 64, 40, 40, 'back'], fav = [20, 64, 40, 40, 'fav'];
@@ -456,6 +470,7 @@ function build(entry) {
     ctx.segA = a; ctx.segB = b; ctx.spacer = sp;
     const bal = document.createElement('div'); bal.className = 'bal'; bal.style.backgroundImage = `url(${IMG('bal_e')})`;
     makeHot(bal, [0, 0, 362, 242, 'bal'], ctx);
+    bal.appendChild(makeCoinFx(310, 22));   // the coin on the open card (Figma 572:3551)
     a.appendChild(bal); ctx.bal = bal;
   } else {
     cv.style.height = H + 'px';
@@ -468,6 +483,7 @@ function build(entry) {
   if (s.map) { const [p, dy] = host(s.map.y); p.appendChild(makeHomeMap(s.map, ctx, dy)); }
   if (s.search) { const [p, dy] = host(s.search.y); p.appendChild(makeSearchRoll(s.search, dy)); }
   if (s.sav) { const [p, dy] = host(s.sav.y); p.appendChild(makeSavArcs(s.sav, dy)); }
+  if (s.coin) { const [p, dy] = host(s.coin.y); p.appendChild(makeCoinFx(s.coin.x, s.coin.y - dy)); }
   if (s.cover) cv.appendChild(makeCover());
   if (s.vpick) makeVouPick(cv);
   if (s.pickRing) { const r = document.createElement('div'); r.className = 'sel-ring'; Object.assign(r.style, {left: '16px', top: s.pickRing + 'px', width: '358px', height: '84px'}); cv.appendChild(r); ctx.ring = r; }
@@ -510,7 +526,7 @@ function makeRail(r, ctx, dy) {
     background: `linear-gradient(${ct} 0 50%, ${cb} 50% 100%)`});
   // a banner behind the rail's top rows stays still while the cards slide over it (food offers rail)
   const still = MAN.railbg && MAN.railbg[r.img];
-  if (still) box.style.background = `url(${IMG(r.img + '_bg')}) 0 ${et}px / 390px ${still}px no-repeat, ${cb}`;
+  if (still) box.style.background = `url(${IMG(r.img + '_bg')}) 0 ${et - 2}px / 390px ${still + 2}px no-repeat, ${cb}`;   // the strip starts 2 px above the rail
   const inner = document.createElement('div'); inner.className = 'inner';
   Object.assign(inner.style, {width: w + 'px', height: r.h + 'px', backgroundImage: `url(${IMG(r.img)})`});
   const shift = a => [a[0] - r.minX, a[1], a[2], a[3], a[4]];
@@ -738,6 +754,14 @@ function homeCarousel(box, r, p, dy) {
   p.appendChild(d);
   const dots = d.querySelectorAll('i');
   autoCarousel(box, n, step, i => dots.forEach((x, j) => x.classList.toggle('on', j === i)));
+}
+
+function makeCoinFx(x, y) {   // Figma: pill coin 441:206 at 165,45; balance card coin 570:5371 at card + 310,26 (32 x 32)
+  const d = document.createElement('div'); d.className = 'coin-fx';
+  Object.assign(d.style, {left: x + 'px', top: y + 'px'});
+  d.style.setProperty('--cm', `url(${IMG('coin_mask')})`);
+  d.innerHTML = '<i class="sw"></i><i class="sp"><svg viewBox="0 0 24 24"><path fill="#fff" d="M12 0C12.9 7.6 16.4 11.1 24 12 16.4 12.9 12.9 16.4 12 24 11.1 16.4 7.6 12.9 0 12 7.6 11.1 11.1 7.6 12 0Z"/></svg></i>';
+  return d;
 }
 
 function makeFlip(s, ctx, y) {
