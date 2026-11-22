@@ -71,11 +71,9 @@ summary{cursor:pointer;font-weight:700;font-size:13px;margin-bottom:8px}
 .rail.snap{scroll-snap-type:x mandatory;scroll-padding-inline:16px}
 .rail .inner{position:relative;direction:ltr;background-repeat:no-repeat;background-size:100% 100%}
 .rail .inner .snap-pt{scroll-snap-align:start}
-.rail.mq{overflow:hidden;width:390px;box-sizing:border-box}
-.mq-track{position:absolute;width:0;animation:mq linear infinite;will-change:transform}
+.rail.mq{overflow:hidden;width:390px;box-sizing:border-box;touch-action:pan-y;-webkit-user-select:none;user-select:none}
+.mq-track{position:absolute;width:0;will-change:transform}
 .mq-copy{position:absolute;top:0;background-repeat:no-repeat}
-.rail.mq.held .mq-track{animation-play-state:paused}
-@keyframes mq{from{transform:translateX(0)}to{transform:translateX(var(--p))}}
 .dragging,.dragging *{cursor:grabbing!important}
 .sticky{position:absolute;top:0;left:0;width:390px;height:153px;z-index:21;background-size:100% 100%;
   transform:translateY(-100%);transition:transform .25s ease}
@@ -927,9 +925,11 @@ function makeRail(r, ctx, dy) {
   return box;
 }
 
-/* category rows: each row slides slowly to the right in an endless loop (two copies of the row, one period apart);
-   a touch holds it still */
-const MQ_SPEED = 22;  // px per second
+/* category rows: each row slides slowly in an endless loop (two copies of the row, one period apart).
+   Drag or swipe a row left or right to move it yourself; a flick sets the direction the loop carries on in,
+   and the row eases back to the slow speed. A touch without a drag holds the row still. */
+const MQ_SPEED = 22;   // px per second, the slow loop
+const MQ_EASE = 2.2;   // how fast a flick settles back to the slow speed (per second)
 function makeMarquee(r, ctx, dy) {
   const box = document.createElement('div'); box.className = 'rail mq';
   const [ct, cb] = (MAN.edge && MAN.edge[r.img]) || ['#f0f8f3', '#f0f8f3'];
@@ -940,6 +940,7 @@ function makeMarquee(r, ctx, dy) {
   r.cards.forEach(c => (rows[c[1]] = rows[c[1]] || []).push(c));
   const ys = Object.keys(rows).map(Number).sort((a, b) => a - b);
   const W = 390 - r.minX;
+  const lanes = [];
   ys.forEach((y, i) => {
     const cs = rows[y].sort((a, b) => a[0] - b[0]);
     const h = cs[0][3], x0 = cs[0][0], x1 = Math.max(...cs.map(c => c[0] + c[2]));
@@ -948,8 +949,7 @@ function makeMarquee(r, ctx, dy) {
     const b0 = i === 0 ? 0 : (ys[i - 1] + rows[ys[i - 1]][0][3] + y) / 2;
     const b1 = i === ys.length - 1 ? r.h : (y + h + ys[i + 1]) / 2;
     const track = document.createElement('div'); track.className = 'mq-track';
-    Object.assign(track.style, {left: x0 + 'px', top: (et + b0) + 'px', height: (b1 - b0) + 'px', animationDuration: (period / MQ_SPEED) + 's'});
-    track.style.setProperty('--p', period + 'px');
+    Object.assign(track.style, {left: x0 + 'px', top: (et + b0) + 'px', height: (b1 - b0) + 'px'});
     for (const off of [0, -period]) {
       const copy = document.createElement('div'); copy.className = 'mq-copy';
       Object.assign(copy.style, {left: off + 'px', width: period + 'px', height: (b1 - b0) + 'px',
@@ -958,11 +958,76 @@ function makeMarquee(r, ctx, dy) {
       track.appendChild(copy);
     }
     box.appendChild(track);
+    lanes.push({track, period, top: et + b0, bot: et + b1, o: 0, v: MQ_SPEED, dir: 1, held: false});
   });
-  let resume;
-  const hold = () => { clearTimeout(resume); box.classList.add('held'); };
-  const go = () => { clearTimeout(resume); resume = setTimeout(() => box.classList.remove('held'), 1200); };
-  box.addEventListener('pointerdown', hold); ['pointerup', 'pointercancel', 'pointerleave'].forEach(e => box.addEventListener(e, go));
+  const paint = L => { const t = ((L.o % L.period) + L.period) % L.period; L.track.style.transform = `translateX(${t}px)`; };
+
+  /* the loop runs only while this screen is on top */
+  let last = 0, raf = 0, idle = 0;
+  const live = () => { const t = top_(); return t && t.el && t.el === box.closest('.layer'); };
+  const tick = now => {
+    raf = 0;
+    if (!box.isConnected) return;
+    if (!live()) { last = 0; idle = setTimeout(wake, 400); return; }
+    const dt = last ? Math.min(.05, (now - last) / 1000) : 0; last = now;
+    for (const L of lanes) {
+      if (L.held) continue;
+      const goal = L.dir * MQ_SPEED;
+      L.v = goal + (L.v - goal) * Math.exp(-MQ_EASE * dt);
+      L.o += L.v * dt; paint(L);
+    }
+    raf = requestAnimationFrame(tick);
+  };
+  const wake = () => { clearTimeout(idle); if (!raf) raf = requestAnimationFrame(tick); };
+  wake();
+
+  /* drag: one pointer at a time, on the row under it */
+  let g = null, seq = 0;
+  const laneAt = ev => {
+    const b = box.getBoundingClientRect(), y = (ev.clientY - b.top) / scale;
+    return lanes.find(L => y >= L.top && y < L.bot) || lanes[y < lanes[0].top ? 0 : lanes.length - 1];
+  };
+  box.addEventListener('pointerdown', ev => {
+    if (g || (ev.pointerType === 'mouse' && ev.button !== 0)) return;
+    ev.stopPropagation();   // keep the screen's own mouse drag-scroll out of it
+    const L = laneAt(ev);
+    g = {id: ev.pointerId, L, sx: ev.clientX, sy: ev.clientY, o0: L.o, axis: '', hist: [[performance.now(), L.o]],
+         sc: ctx.scroll ? ctx.scroll.scrollTop : 0, mouse: ev.pointerType === 'mouse'};
+    L.held = true; L.v = 0; dragMoved = false; seq++;
+  });
+  const move = ev => {
+    if (!g || ev.pointerId !== g.id) return;
+    const dx = (ev.clientX - g.sx) / scale, dyy = (ev.clientY - g.sy) / scale;
+    if (!g.axis) {
+      if (Math.hypot(dx, dyy) < 6) return;
+      g.axis = Math.abs(dx) >= Math.abs(dyy) ? 'x' : 'y';
+      dragMoved = true;
+      if (g.axis === 'x') { document.body.classList.add('dragging'); try { box.setPointerCapture(ev.pointerId); } catch (e) {} }
+      else if (!g.mouse) { end(ev); return; }   // touch: the page scrolls itself (pan-y)
+    }
+    if (g.axis === 'y') { if (ctx.scroll) ctx.scroll.scrollTop = g.sc - dyy; return; }
+    g.L.o = g.o0 + dx; paint(g.L);
+    const now = performance.now();
+    g.hist.push([now, g.L.o]); while (g.hist.length > 2 && now - g.hist[0][0] > 120) g.hist.shift();
+  };
+  const end = ev => {
+    if (!g || ev.pointerId !== g.id) return;
+    const {L, hist, axis, o0} = g; g = null;
+    document.body.classList.remove('dragging');
+    L.held = false;
+    if (axis === 'x') {
+      const now = performance.now(), [ta, oa] = hist[0], [tb, ob] = hist[hist.length - 1];
+      const v = (tb - ta) > 8 && now - tb < 100 ? Math.max(-1600, Math.min(1600, (ob - oa) / ((tb - ta) / 1000))) : 0;
+      L.v = v;
+      if (Math.abs(v) > 40) L.dir = Math.sign(v);             // a flick sets the direction
+      else if (Math.abs(L.o - o0) > 24) L.dir = Math.sign(L.o - o0);   // so does a slow drag
+    }
+    const n = seq; setTimeout(() => { if (n === seq) dragMoved = false; }, 0);   // a quick re-grab keeps its own flag
+    wake();
+  };
+  window.addEventListener('pointermove', move);
+  ['pointerup', 'pointercancel'].forEach(e => window.addEventListener(e, end));
+  box.addEventListener('lostpointercapture', end);
   return box;
 }
 
