@@ -86,6 +86,29 @@ summary{cursor:pointer;font-weight:700;font-size:13px;margin-bottom:8px}
 .sk-flapw{position:absolute;left:-12px;top:-12px;right:-12px;bottom:-12px;filter:drop-shadow(-2px 2px 3px rgba(0,0,0,.3))}
 .sk-flapw .sk-flap{inset:0;display:none}
 .sk.c .sk-under,.sk.c .sk-shade,.sk.c .sk-flapw{display:none}
+.sav{position:absolute;left:16px;width:196px;height:104px;background-size:100% 100%;z-index:3;pointer-events:none}
+.sav svg{display:block}
+/* Today's pick deck (makeDeck): HTML cards behind the Samsung flip card */
+.tpc{position:absolute;width:398px;height:403px;z-index:6;touch-action:pan-y;display:none}
+.tpc.on,.tpc.next{display:block}
+.flip.tpc-flip:not(.on):not(.next){display:none}
+.flip.next{z-index:5}
+.flip.tpc-flip:not(.busy):not(.flipped) .face.front{opacity:1}   /* the deck moves it, so draw the front itself rather than rely on the Home image under it */
+.tpc.next{z-index:5}
+.tpc-card{position:absolute;left:20px;top:14px;width:358px;height:363px;background:#fff;border-radius:20px;box-shadow:0 4px 18px rgba(18,18,18,.06);overflow:hidden;direction:rtl}
+.tpc-ph{position:absolute;left:8px;top:8px;width:342px;height:221px;border-radius:16px;background:#ddd center/cover no-repeat}
+.tpc-fl{position:absolute;left:16px;top:16px;width:32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;color:#111}
+.tpc-fl .ic,.tpc-meta .ic{display:block;width:18px;height:18px}
+.tpc-fl .ic svg,.tpc-meta .ic svg{width:18px;height:18px;stroke-width:2;display:block}
+.tpc-tag{position:absolute;left:16px;top:197px;height:24px;width:78px;text-align:center;border-radius:12px;background:rgba(17,17,17,.7);color:#fff;font:700 12px/24px "NaN SuperX","Expo Arabic",sans-serif;white-space:nowrap}
+.tpc-lg{position:absolute;left:275px;top:16px;width:67px;height:56px;border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:center}
+.tpc-lg i{display:block;width:55.4px;height:45px;background:center/contain no-repeat}
+.tpc-m{position:absolute;left:16px;top:245px;width:326px;font:400 12px/16px "NaN SuperX","Expo Arabic",sans-serif;color:#62625c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tpc-t{position:absolute;left:16px;top:266px;width:326px;font:700 16px/24px "NaN SuperX","Expo Arabic",sans-serif;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tpc-d{position:absolute;right:16px;top:297px;height:24px;padding:0 8px;border-radius:12px;background:#00ffa8;color:#111;font:700 12px/24px "NaN SuperX","Expo Arabic",sans-serif;white-space:nowrap}
+.tpc-meta{position:absolute;right:16px;top:329px;height:18px;display:flex;align-items:center;gap:4px;color:#62625c;font:400 12px/16px "NaN SuperX","Expo Arabic",sans-serif;white-space:nowrap}
+.tpc-meta b{font-weight:400;margin:0 4px}
+.tpdots{z-index:6}
 /* voucher values on merchant C1 (makeVouPick) */
 .vp{position:absolute;z-index:4}
 .vp-val{background:#111;overflow:hidden;pointer-events:none}
@@ -225,6 +248,7 @@ body.full.ctl-open .ctl{background:var(--chip-on);color:var(--chip-on-ink)}
     <h1>WalaPlus · Final UI prototype</h1>
     <p class="sub">Every screen on the Final UI page, linked up. The switches swap versions in place.</p>
     <div class="grp"><label>Home</label><div class="seg" id="c-home"></div></div>
+    <div class="grp"><label>Savings card arcs (Home, Aramco)</label><div class="seg" id="c-sav"></div></div>
     <div class="grp"><label>Merchant screen</label><div class="seg" id="c-merchant"></div></div>
     <div class="grp"><label>Offer screen</label><div class="seg" id="c-offer"></div></div>
     <div class="grp"><label>When the cashier QR is scanned</label><div class="seg" id="c-result"></div></div>
@@ -251,12 +275,13 @@ const $ = s => document.querySelector(s);
 const phone = $('#phone');
 
 /* ---------- configuration ---------- */
-const cfg = {home: '1', merchant: 'c1a', offer: 'o2a', result: 'r2', loc: true, hs: false};
+const cfg = {home: '1', merchant: 'c1a', offer: 'o2a', result: 'r2', loc: true, hs: false, sav: 'smile'};
 try { Object.assign(cfg, JSON.parse(localStorage.getItem('wp-final-cfg') || '{}')); } catch (e) {}
 const saveCfg = () => { try { localStorage.setItem('wp-final-cfg', JSON.stringify(cfg)); } catch (e) {} };
 
 const OPTS = {
   home: [['1', 'Home', 'sizing rules'], ['2', 'Aramco', 'client theme'], ['3', 'Balance card', 'merged pill']],
+  sav: [['smile', 'Smile', 'cradles the pill'], ['rise', 'Rising', 'growth line'], ['full', 'Original', 'full mosaic']],
   merchant: [['c1a', 'C1 · full', 'offers, vouchers, cashback'], ['c1b', 'C1 · offers', 'three posters'], ['c1c', 'C1 · one offer', ''], ['c2', 'C2', 'cashback only'], ['c3', 'C3', 'long name']],
   offer: [['o2a', 'O2a', 'in-store'], ['o2b', 'O2b', 'online, reveal'], ['o2c', 'O2c', 'in-store + online']],
   result: [['r2', 'Success'], ['f1', 'F1'], ['f2', 'F2'], ['f3', 'F3'], ['f4', 'F4']],
@@ -307,7 +332,7 @@ function homeSpec(v) {
     {y: 4009, h: 96, minX: -602, cards: C([-602, -274, 54], 320, 'offer', 96)},
   ].map((r, i) => ({...r, y: Y(r.y), img: `home${v}_r${i}`, ...(r.dots ? {dots: Y(r.dots)} : {})}));
   return {img: 'home' + v, h, hot, rails, tab: {img: `home${v}_tab`, top: h - 84, hot: tabs(h - 84)}, tabId: 'home',
-    flip: {y: Y(2319)}, map: {y: Y(989), theme: v === '2' ? 'aramco' : 'wala'}, search: {y: Y(325)}, split: s3 ? 195 : 0, label: 'Home ' + ({1: '1', 2: '2 · Aramco', 3: '3 · balance card'})[v]};
+    flip: {y: Y(2319), dots: Y(2711)}, map: {y: Y(989), theme: v === '2' ? 'aramco' : 'wala'}, search: {y: Y(325)}, sav: s3 ? null : {y: Y(581), v}, split: s3 ? 195 : 0, label: 'Home ' + ({1: '1', 2: '2 · Aramco', 3: '3 · balance card'})[v]};
 }
 
 const back = [334, 64, 40, 40, 'back'], fav = [20, 64, 40, 40, 'fav'];
@@ -431,9 +456,10 @@ function build(entry) {
   const host = y => (s.split && y >= s.split) ? [ctx.segB, s.split] : [s.split ? ctx.segA : cv, 0];
   for (const a of s.hot) { const [p, dy] = host(a[1]); makeHot(p, a, ctx, dy); }
   if (s.rails) for (const r of s.rails) { const [p, dy] = host(r.y); const box = r.marquee ? makeMarquee(r, ctx, dy) : makeRail(r, ctx, dy); p.appendChild(box); if (r.auto) homeCarousel(box, r, p, dy); }
-  if (s.flip) { const [p, dy] = host(s.flip.y); p.appendChild(makeFlip(s, ctx, s.flip.y - dy)); }
+  if (s.flip) { const [p, dy] = host(s.flip.y); makeDeck(p, s, ctx, s.flip.y - dy, s.flip.dots - dy); }
   if (s.map) { const [p, dy] = host(s.map.y); p.appendChild(makeHomeMap(s.map, ctx, dy)); }
   if (s.search) { const [p, dy] = host(s.search.y); p.appendChild(makeSearchRoll(s.search, dy)); }
+  if (s.sav) { const [p, dy] = host(s.sav.y); p.appendChild(makeSavArcs(s.sav, dy)); }
   if (s.cover) cv.appendChild(makeCover());
   if (s.vpick) makeVouPick(cv);
   if (s.pickRing) { const r = document.createElement('div'); r.className = 'sel-ring'; Object.assign(r.style, {left: '16px', top: s.pickRing + 'px', width: '358px', height: '84px'}); cv.appendChild(r); ctx.ring = r; }
@@ -704,7 +730,7 @@ function homeCarousel(box, r, p, dy) {
 }
 
 function makeFlip(s, ctx, y) {
-  const f = document.createElement('div'); f.className = 'flip';
+  const f = document.createElement('div'); f.className = 'flip tpc-flip';
   Object.assign(f.style, {left: '-4px', top: (y - 14) + 'px', width: '398px', height: '403px'});
   const ub = document.createElement('div'); ub.className = 'under-bg'; ub.style.background = MAN.bg[s.img + '_flip'] || '#eef6f2';
   const card = document.createElement('div'); card.className = 'card';
@@ -865,6 +891,122 @@ function makeVouPick(cv) {
   show(100, false);
 }
 
+/* Savings card arcs (Tawaty, 22 Nov: "less quantity and ... a unique shape"). The card's own mosaic is taken out
+   of the image (sav_clean_*) and redrawn here from the master arc on the same 12 x 16 grid, fill #00cc88 (Aramco
+   #47a1c1) at 40%, as in Figma 441:350. Cells are (column k, row j): x 19.8 + 12k, y 590.3 + 16j; rows 2-3 of
+   columns 1-13 sit under the pill. */
+const SAV_SHAPES = {
+  // one big smile made of small ones, cradling the "last 30 days" pill
+  smile: [[3, 5], [4, 5], [5, 5], [6, 5], [7, 5], [8, 5], [9, 5], [10, 5], [11, 5], [1, 4], [2, 4], [12, 4], [13, 4], [0, 3], [14, 3], [0, 2], [14, 2], [0, 1], [14, 1]],
+  // a rising line that runs behind the pill, like the trend arrow inside it
+  rise: (() => { const c = []; for (let j = 0; j < 6; j++) for (let k = 0; k < 15; k++) if (Math.abs(k - (14 - 2.8 * j)) <= 2) c.push([k, j]); return c; })(),
+  full: (() => { const c = []; for (let j = 0; j < 6; j++) for (let k = 0; k < 15; k++) c.push([k, j]); return c; })(),
+};
+function makeSavArcs(m, dy) {
+  const el = document.createElement('div'); el.className = 'sav';
+  Object.assign(el.style, {top: (m.y - dy) + 'px', backgroundImage: `url(${IMG('sav_clean_' + m.v)})`});
+  const fill = m.v === '2' ? '#47a1c1' : '#00cc88';
+  const hid = (x, y) => x + 8.5 > 32 && x < 181.2 && y + 3.2 > 617 && y < 649;
+  const arcs = (SAV_SHAPES[cfg.sav] || SAV_SHAPES.smile).map(([k, j]) => [19.8 + 12 * k, 590.3 + 16 * j]).filter(([x, y]) => !hid(x, y))
+    .map(([x, y]) => `<path transform="translate(${(x - 16).toFixed(2)} ${(y - 581).toFixed(2)})" d="${HM_ARC}"/>`).join('');
+  el.innerHTML = `<svg width="196" height="104" viewBox="0 0 196 104" fill="${fill}" opacity=".4">${arcs}</svg>`;
+  return el;
+}
+
+/* Today's pick deck (Tawaty, 22 Nov): "Swiping above this card will show the card behind it in a smooth shuffling
+   animation and highlight the next indicator, fill the three cards with data we already have". Samsung stays the
+   flip card; Afiya (its 30% branch offer on C1), 30 Degrees salon and Verve Spa (their Home cards) follow, drawn in
+   HTML to the Figma front (565:2847). A sideways swipe either way sends the top card round to the back of the deck. */
+const TP_CARDS = [
+  {k: 'afiya', m: 'عافية', t: 'خصم ‎30% على جميع الوجبات الصحية', d: 'خصم ‎30%', ch: 'في الفروع', date: 'حتى 31 ديسمبر 2026'},
+  {k: 'salon', m: 'صالون 30 درجة للحلاقة الرجالية', t: 'خصم ‎15% على الحلاقة والعناية باللحية', d: 'خصم ‎15%', ch: 'في الفروع', date: 'حتى 31 ديسمبر 2026'},
+  {k: 'verve', m: 'فيرف سبا', t: 'خصم ‎30% على جلسات السبا', d: 'خصم ‎30%', ch: 'في الفروع', date: 'حتى 31 ديسمبر 2026', plate: '#e1cfb9'},
+];
+function tpCard(c, ctx, y) {
+  const ic = n => (window.EDGE ? EDGE.ic(n) : '');
+  const el = document.createElement('div'); el.className = 'tpc';
+  Object.assign(el.style, {left: '-4px', top: (y - 14) + 'px'});
+  el.innerHTML = `<div class="tpc-card"><div class="tpc-ph" style="background-image:url(${IMG('tpc_' + c.k + '_photo')})"></div>` +
+    `<div class="tpc-fl">${ic('refresh-cw')}</div><div class="tpc-tag">ينتهي اليوم</div>` +
+    `<div class="tpc-lg"${c.plate ? ` style="background:${c.plate}"` : ''}><i style="background-image:url(${IMG('tpc_' + c.k + '_logo')})"></i></div>` +
+    `<div class="tpc-m">${c.m}</div><div class="tpc-t">${c.t}</div><div class="tpc-d">${c.d}</div>` +
+    `<div class="tpc-meta">${ic(c.ico || 'map-pin')}<span>${c.ch}</span><b>·</b>${ic('calendar')}<span>${c.date}</span></div></div>`;
+  makeHot(el.firstChild, [0, 0, 358, 363, 'tpOffer'], ctx);
+  return el;
+}
+const TP_OUT = 280, TP_BACK = 300;   // ms: swing out, then tuck in behind
+function makeDeck(p, s, ctx, y, dotsY) {
+  const f = makeFlip(s, ctx, y);
+  const items = [f, ...TP_CARDS.map(c => tpCard(c, ctx, y))];
+  items.forEach(el => p.appendChild(el));
+  items[0].classList.add('on'); f.style.touchAction = 'pan-y';
+  const d = document.createElement('div'); d.className = 'cdots tpdots';
+  Object.assign(d.style, {top: (dotsY - 6) + 'px', background: MAN.bg[s.img + '_flip'] || '#f0f8f3'});
+  d.innerHTML = items.map((_, i) => `<i class="${i ? '' : 'on'}"></i>`).join('');
+  p.appendChild(d);
+  const dots = [...d.children];
+  let cur = 0, busy = false, g = null, seq = 0;
+  const top = () => items[cur], nxt = () => items[(cur + 1) % items.length];
+  const setNext = on => { items.forEach(el => el.classList.remove('next')); if (on) nxt().classList.add('next'); };
+  const place = (el, dx) => { el.style.transform = dx ? `translateX(${dx}px) rotate(${dx * .035}deg)` : ''; };
+  const settle = () => { const n = seq; setTimeout(() => { if (n === seq) dragMoved = false; }, 0); };
+  function advance(dir) {
+    busy = true;
+    const out = top(), inn = nxt(), from = out.style.transform || 'none';
+    setNext(true);
+    inn.animate([{transform: 'translateY(10px) scale(.95)'}, {transform: 'none'}], {duration: TP_OUT + TP_BACK, easing: 'cubic-bezier(.2,.7,.2,1)'});
+    const a = out.animate([{transform: from}, {transform: `translateX(${dir * 250}px) translateY(-6px) rotate(${dir * 10}deg)`}],
+      {duration: TP_OUT, easing: 'cubic-bezier(.3,.6,.4,1)', fill: 'forwards'});
+    a.onfinish = () => {
+      out.style.zIndex = 4;                              // now behind the new top card
+      const b = out.animate([{transform: `translateX(${dir * 250}px) translateY(-6px) rotate(${dir * 10}deg)`}, {transform: 'translateY(14px) scale(.92)'}],
+        {duration: TP_BACK, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards'});
+      b.onfinish = () => {
+        a.cancel(); b.cancel(); out.style.zIndex = ''; place(out, 0);
+        out.classList.remove('on'); inn.classList.remove('next'); inn.classList.add('on');
+        cur = (cur + 1) % items.length; dots.forEach((x, j) => x.classList.toggle('on', j === cur));
+        busy = false;
+      };
+    };
+  }
+  const down = ev => {
+    const el = ev.currentTarget;
+    if (busy || g || el !== top() || f.classList.contains('flipped') || f.classList.contains('busy') || (ev.pointerType === 'mouse' && ev.button !== 0)) return;
+    if (ev.pointerType === 'mouse') ev.stopPropagation();   // keep the page's mouse drag-scroll out of it
+    g = {el, id: ev.pointerId, sx: ev.clientX, sy: ev.clientY, axis: '', dx: 0, t: performance.now(), sc: ctx.scroll ? ctx.scroll.scrollTop : 0, mouse: ev.pointerType === 'mouse'};
+    seq++;
+  };
+  const move = ev => {
+    if (!g || ev.pointerId !== g.id) return;
+    const dx = (ev.clientX - g.sx) / scale, dy = (ev.clientY - g.sy) / scale;
+    if (!g.axis) {
+      if (Math.hypot(dx, dy) < 6) return;
+      g.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      dragMoved = true;
+      if (g.axis === 'x') { try { g.el.setPointerCapture(ev.pointerId); } catch (e) {} setNext(true); g.el.style.transition = 'none'; }
+      else if (!g.mouse) { g = null; settle(); return; }
+    }
+    if (g.axis === 'y') { if (ctx.scroll) ctx.scroll.scrollTop = g.sc - dy; return; }
+    g.dx = dx; place(g.el, dx);
+  };
+  const up = ev => {
+    if (!g || ev.pointerId !== g.id) return;
+    const {el, axis, dx, t} = g; g = null; settle();
+    if (axis !== 'x') return;
+    const v = Math.abs(dx) / Math.max(1, performance.now() - t);
+    if (Math.abs(dx) > 70 || (Math.abs(dx) > 24 && v > .45)) return advance(dx > 0 ? 1 : -1);
+    el.style.transition = 'transform .25s cubic-bezier(.3,.7,.2,1)'; place(el, 0);
+    setTimeout(() => { el.style.transition = ''; if (!busy) setNext(false); }, 260);
+  };
+  items.forEach(el => {
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('pointermove', move);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointercancel', up);
+  });
+  ctx.deck = {advance: () => !busy && advance(-1), cur: () => cur};
+}
+
 /* revealed code box over a sheet/page that has s.code */
 function showRevealed(ctx, anim) {
   const s = ctx.s, [x, y, w, h] = s.code;
@@ -1023,6 +1165,10 @@ function act_(act, ctx, hsEl) {
       if (p.t === 'offer' && p.id === 'o2b_tall') replaceTop({t: 'offer', mode: 'after', flow: p.flow, revealed: true}, 'none');
       return;
     }
+    case 'tpOffer': {   // the HTML Today's pick cards are branch offers: open the in-store offer sheet
+      if (cfg.offer !== 'o2a') { cfg.offer = 'o2a'; saveCfg(); seg('c-offer', 'offer'); }
+      return push({t: 'offer', mode: 'tall', flow: 1});
+    }
     case 'flip': {
       const f = ctx.flip; f.classList.add('busy'); f.classList.toggle('flipped');
       clearTimeout(f._t); f._t = setTimeout(() => f.classList.remove('busy'), 650);
@@ -1109,12 +1255,13 @@ function onCfg(key) {
   // jump to where the change shows
   const has = t => stack.some(e => e.t === t);
   if (key === 'home' && !has('home')) return rerenderAll();
+  if (key === 'sav') { if (cfg.home === '3') { cfg.home = '1'; saveCfg(); seg('c-home', 'home'); } return resetTo([{t: 'home'}]); }
   if (key === 'merchant' && !has('merchant')) return resetTo([{t: 'home'}, {t: 'merchant'}]);
   if (key === 'offer' && !has('offer')) return resetTo([{t: 'home'}, {t: 'merchant'}, {t: 'offer', mode: 'tall', flow: 1}]);
   stack.forEach(e => { if (e.t === 'offer') e.revealed = false; });
   rerenderAll();
 }
-seg('c-home', 'home'); seg('c-merchant', 'merchant'); seg('c-offer', 'offer'); seg('c-result', 'result');
+seg('c-home', 'home'); seg('c-sav', 'sav'); seg('c-merchant', 'merchant'); seg('c-offer', 'offer'); seg('c-result', 'result');
 $('#c-loc').checked = cfg.loc;
 $('#c-loc').onchange = ev => { cfg.loc = ev.target.checked; saveCfg(); if (stack.some(e => e.t === 'stores')) rerenderAll(); else resetTo([{t: 'home'}, {t: 'stores', lens: 's1'}]); };
 $('#c-hs').checked = cfg.hs; phone.classList.toggle('show-hs', cfg.hs);

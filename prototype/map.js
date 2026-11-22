@@ -11,7 +11,7 @@ const HM_PINS = [
   {k: 'radisson', v: '25%', d: '0.8', top: 43, right: 358 - 295, r: 8, logo: {w: 64, h: 26, r: 8, b: 1}},
   {k: 'br', v: '2+1', d: '1.1', top: 114, right: 358 - 294.5, r: 8, logo: {w: 28.5, h: 24, r: 6, b: .375}},
   {k: 'thirty', v: '1+1', d: '1.4', top: 126, left: 65, r: 8, logo: {w: 24, h: 24, r: 6, b: .375}},
-  {k: 'bassami', v: '15%', d: '1.8', top: 67, left: 25, r: 999, logo: {w: 26, h: 26, r: 12, b: 1}},
+  {k: 'alma', v: '15%', d: '1.8', top: 68, left: 25, r: 8, logo: {w: 24, h: 24, r: 6, b: .375}},   // was Bassami's round pin; Tawaty asked for Alma's logo and the usual radius (22 Nov)
   {k: 'chuck', v: '20%', d: '1.3', top: 12, left: 92, r: 8, logo: {w: 24, h: 24, r: 6, b: .375}},
 ];
 const HM_THEME = {wala: ['#00FFA8', '0,255,168', '#111'], aramco: ['#47A1C1', '71,161,193', '#000']};

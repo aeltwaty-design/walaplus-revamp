@@ -302,6 +302,36 @@ for f in sorted(glob.glob('stores_src/*.png')):
 for f in sorted(glob.glob('map_src/*.png')):
     save(Image.open(f).convert('RGBA'), 'mp_' + os.path.basename(f)[:-4], force=True)
 
+# ---- savings card (Home 1, 2): the full arc mosaic is drawn again in HTML as a smaller shape (makeSavArcs),
+# so cut the card's left part with the old arcs taken out. Each arc box is refilled row by row from the
+# pixels just above and below it (the card gradient and the pill's shadow are smooth there).
+def sav_clean(v):
+    im = Image.open(f'{OUT}/img/home{v}.webp').convert('RGB')
+    x0, y0, x1, y1 = 16, 581, 212, 685
+    a = np.asarray(im.crop((x0 * S, y0 * S, x1 * S, y1 * S))).astype(float)
+    for k in range(15):
+        for j in range(6):
+            ax, ay = 19.8 + 12 * k, 590.3 + 16 * j
+            if ax + 8.5 > 32 and ax < 181.2 and ay + 3.2 > 617 and ay < 649:
+                continue                                    # under the pill: nothing shows
+            c0, c1 = int((ax - x0) * S) - 2, int((ax + 8.5 - x0) * S) + 3
+            r0, r1 = int((ay - y0) * S) - 2, int((ay + 3.2 - y0) * S) + 3
+            top, bot = a[r0 - 1, c0:c1].copy(), a[r1, c0:c1].copy()
+            for r in range(r0, r1):
+                t = (r - r0 + 1) / (r1 - r0 + 1)
+                a[r, c0:c1] = top * (1 - t) + bot * t
+    save(Image.fromarray(a.round().clip(0, 255).astype('uint8')), f'sav_clean_{v}', force=True)
+for v in ('1', '2'):
+    sav_clean(v)
+
+# ---- Today's pick deck: three more cards (Afiya, 30 Degrees salon, Verve Spa) drawn in HTML (tpCard), photos and
+# logos from the Figma Home cards / Tawaty's Afiya photos, staged in tp_src/
+for n in ('afiya', 'salon', 'verve'):
+    ph = Image.open(f'tp_src/{n}_photo.jpg').convert('RGB')
+    ph.save(f'{OUT}/img/tpc_{n}_photo.webp', 'WEBP', quality=86, method=6)
+    M['img'][f'tpc_{n}_photo'] = [342, 221]
+    save(Image.open(f'tp_src/{n}_logo.png').convert('RGB'), f'tpc_{n}_logo', force=True)
+
 # ---- fonts ----
 FONT_FILES = {
     'expo-medium.ttf': 'expo-arabic/Expo_Arabic_Medium.ttf',
